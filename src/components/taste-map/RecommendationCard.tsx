@@ -22,10 +22,10 @@ export function RecommendationCard({ restaurant, order, onClick }: Recommendatio
       <div className="card-content">
         <div className="card-title-row">
           <h3>{restaurant.name}</h3>
-          {restaurant.hidden && <span className="hidden-badge">기록 없음</span>}
+          {restaurant.reviews < 40 && <span className="low-review-badge">후기 적음</span>}
         </div>
         <span className="card-meta">
-          {restaurant.category}{!restaurant.hidden && ` · 후기 ${restaurant.reviews}건`}
+          {restaurant.category} · 후기 {restaurant.reviews}건
         </span>
         <p className="card-summary">“{restaurant.quote}”</p>
         <div className="card-keywords" aria-label="대표 특징">

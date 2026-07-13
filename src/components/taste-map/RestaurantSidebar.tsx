@@ -1,7 +1,7 @@
 import { LocationMap, TastePositionMap } from '../restaurant-detail'
 import { getReviewEvidence } from '../../mocks/restaurants'
 import type { Restaurant } from '../../types/restaurant'
-import { getPromotionalComment } from '../../utils/tasteMap'
+import { getClosingPromotionalComment, getPromotionalComment } from '../../utils/tasteMap'
 
 type RestaurantSidebarProps = {
   restaurant: Restaurant
@@ -27,6 +27,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
   const pointColor = getPointColor(restaurant.position)
   const maxCount = Math.max(1, restaurant.keywords.length * 5)
   const promotionalComment = getPromotionalComment(restaurant)
+  const closingPromotionalComment = getClosingPromotionalComment(restaurant)
 
   return (
     <div className="restaurant-sidebar">
@@ -40,27 +41,24 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
           <div>
             <span className={`sidebar-color-dot ${pointClass}`} />
             <h2>{restaurant.name}</h2>
-            {restaurant.hidden && <span className="hidden-badge">기록 없음</span>}
           </div>
-          <p>{restaurant.category}{!restaurant.hidden && ` · 후기 ${restaurant.reviews}건`}</p>
+          <p>{restaurant.category} · 후기 {restaurant.reviews}건</p>
           <p className="detail-promo-comment">{promotionalComment}</p>
         </header>
 
-        {restaurant.reviews < 40 && !restaurant.hidden && (
+        {restaurant.reviews < 40 && (
           <div className="sidebar-caution">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
             후기가 적어요. 취향 자리가 부정확할 수 있어요.
           </div>
         )}
 
-        {restaurant.hidden && <div className="sidebar-unrecorded"><span>✦</span>아직 아무도 기록하지 않은 집</div>}
-
         <section className="sidebar-section sidebar-position">
-          <h3>이 골목에선 여기쯤{restaurant.hidden ? '일 거예요' : '이에요'}</h3>
+          <h3>이 골목에선 여기쯤이에요</h3>
           <div className="sidebar-map-pair">
             <div className="sidebar-map-panel">
               <TastePositionMap restaurant={restaurant} />
-              <p className="quadrant-caption" style={{ color: pointColor }}>‘{quadrantName(restaurant.position)}’ {restaurant.hidden ? '근처 (추정)' : '자리'}</p>
+              <p className="quadrant-caption" style={{ color: pointColor }}>‘{quadrantName(restaurant.position)}’ 자리</p>
             </div>
             <div className="sidebar-map-panel sidebar-location-panel">
               <LocationMap restaurant={restaurant} />
@@ -68,55 +66,39 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
               <p className="sidebar-location-note">골목 안쪽, 도보로 찾아가기 좋아요</p>
             </div>
           </div>
-          {restaurant.hidden && <p className="sidebar-estimate">후기가 없어서, 업종과 위치로 추정한 자리예요. 실제와 다를 수 있어요.</p>}
         </section>
 
-        {!restaurant.hidden && (
-          <>
-            <section className="sidebar-section">
-              <h3>이런 말이 자주 나와요</h3>
-              <div className="mention-list">
-                {restaurant.keywords.map((keyword, index) => {
-                  const count = Math.max(2, maxCount - index * 4)
-                  return (
-                    <div key={keyword} className="mention-item">
-                      <p><span>{keyword}</span><span>{count}</span></p>
-                      <div><i className={pointClass} style={{ width: `${Math.max(34, 100 - index * 24)}%` }} /></div>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
+        <section className="sidebar-section">
+          <h3>이런 말이 자주 나와요</h3>
+          <div className="mention-list">
+            {restaurant.keywords.map((keyword, index) => {
+              const count = Math.max(2, maxCount - index * 4)
+              return (
+                <div key={keyword} className="mention-item">
+                  <p><span>{keyword}</span><span>{count}</span></p>
+                  <div><i className={pointClass} style={{ width: `${Math.max(34, 100 - index * 24)}%` }} /></div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
 
-            <section className="sidebar-section">
-              <h3>이 문장들 때문에 여기 있어요</h3>
-              <div className="sidebar-snippets">
-                {evidence.map(({ quote }) => <blockquote key={quote}>“{quote}”</blockquote>)}
-              </div>
-              <p className="snippet-source">네이버 블로그 후기</p>
-            </section>
-          </>
-        )}
+        <section className="sidebar-section">
+          <h3>이 문장들 때문에 여기 있어요</h3>
+          <div className="sidebar-snippets">
+            {evidence.map(({ quote }) => <blockquote key={quote}>“{quote}”</blockquote>)}
+          </div>
+          <p className="snippet-source">네이버 블로그 후기</p>
+        </section>
 
-        {restaurant.hidden && (
-          <section className="sidebar-section">
-            <h3>우리가 아는 건 이게 전부예요</h3>
-            <dl className="sidebar-facts">
-              <div><dt>업종</dt><dd>{restaurant.category}</dd></div>
-              <div><dt>위치</dt><dd>{restaurant.address}</dd></div>
-              <div><dt>규모</dt><dd>소규모</dd></div>
-            </dl>
-            <div className="sidebar-first-guest">
-              <p>네이버 지도에서 검색하면 이 가게는 나오지 않아요.</p>
-              <strong>첫 번째 손님이 되어보실래요?</strong>
-            </div>
-          </section>
-        )}
-
+        <aside className="detail-closing-promo">
+          <span>오늘의 골목 추천</span>
+          <strong>{closingPromotionalComment}</strong>
+        </aside>
       </div>
 
       <footer className="sidebar-actions">
-        {!restaurant.hidden && <button onClick={onFindSimilar}>여기랑 비슷한 집</button>}
+        <button onClick={onFindSimilar}>여기랑 비슷한 집</button>
         <a href={`https://map.naver.com/p/search/${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noreferrer">길찾기</a>
       </footer>
     </div>

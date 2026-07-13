@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { restaurants } from '../../mocks/restaurants'
 import type { Restaurant, TastePoint } from '../../types/restaurant'
 
@@ -11,33 +11,28 @@ type TasteMapProps = {
   loading?: boolean
 }
 
-type DragMode = 'pan' | 'user' | null
-
 const getPointClass = ([x, y]: TastePoint) => (
   y >= 0 ? (x < 0 ? 'point-violet' : 'point-orange') : (x < 0 ? 'point-green' : 'point-pink')
 )
 
-const screenPoint = ([x, y]: TastePoint, zoom: number, pan: TastePoint) => ({
-  x: 500 + x * 400 * zoom + pan[0],
-  y: 500 - y * 400 * zoom + pan[1],
+const screenPoint = ([x, y]: TastePoint) => ({
+  x: 500 + x * 400,
+  y: 500 - y * 400,
 })
 
 const confidenceFor = (restaurant: Restaurant) => {
-  if (restaurant.hidden) return 'none'
   if (restaurant.reviews < 40) return 'low'
   return 'high'
 }
 
 export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendations, loading = false }: TasteMapProps) {
   const shellRef = useRef<HTMLDivElement>(null)
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState<TastePoint>([0, 0])
-  const [dragging, setDragging] = useState<DragMode>(null)
+  const [draggingUser, setDraggingUser] = useState(false)
   const [loadStep, setLoadStep] = useState(0)
   const [coach, setCoach] = useState(0)
   const [mapPixelWidth, setMapPixelWidth] = useState(1000)
   const recommendationIds = new Set(recommendations.map((restaurant) => restaurant.id))
-  const userPoint = screenPoint(taste, zoom, pan)
+  const userPoint = screenPoint(taste)
   const nodeHitRadius = Math.max(24, 24 * 1000 / mapPixelWidth)
 
   useEffect(() => {
@@ -63,42 +58,26 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
     return () => window.clearTimeout(timer)
   }, [loading])
 
-  const changeZoom = (nextZoom: number) => setZoom(Math.min(4, Math.max(.6, nextZoom)))
-  const onWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    changeZoom(zoom * (1 - event.deltaY * .0015))
-  }
-
-  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (loading) return
-    setDragging('pan')
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }
-
   const onUserPointerDown = (event: ReactPointerEvent<SVGGElement>) => {
     event.preventDefault()
     event.stopPropagation()
-    setDragging('user')
+    setDraggingUser(true)
     shellRef.current?.setPointerCapture(event.pointerId)
   }
 
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragging || !shellRef.current) return
+    if (!draggingUser || !shellRef.current) return
     const rect = shellRef.current.getBoundingClientRect()
     const scale = 1000 / rect.width
-    if (dragging === 'pan') {
-      setPan(([x, y]) => [x + event.movementX * scale, y + event.movementY * scale])
-      return
-    }
     const pointerX = (event.clientX - rect.left) * scale
     const pointerY = (event.clientY - rect.top) * scale
     onTasteChange([
-      Math.min(1.15, Math.max(-1.15, (pointerX - 500 - pan[0]) / (400 * zoom))),
-      Math.min(1.15, Math.max(-1.15, -(pointerY - 500 - pan[1]) / (400 * zoom))),
+      Math.min(1.15, Math.max(-1.15, (pointerX - 500) / 400)),
+      Math.min(1.15, Math.max(-1.15, -(pointerY - 500) / 400)),
     ])
   }
 
-  const stopDragging = () => setDragging(null)
+  const stopDragging = () => setDraggingUser(false)
   const finishCoach = () => setCoach(0)
   const advanceCoach = () => {
     if (coach < 2) {
@@ -118,9 +97,7 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
   return (
     <div
       ref={shellRef}
-      className={`taste-map-shell ${dragging ? `is-dragging is-${dragging}` : ''}`}
-      onWheel={onWheel}
-      onPointerDown={onPointerDown}
+      className={`taste-map-shell ${draggingUser ? 'is-dragging' : ''}`}
       onPointerMove={onPointerMove}
       onPointerUp={stopDragging}
       onPointerCancel={stopDragging}
@@ -133,17 +110,17 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
         <path d="M0 500H1000M500 0V1000" className="axis-line" />
 
         {restaurants.map((restaurant, index) => {
-          const point = screenPoint(restaurant.position, zoom, pan)
+          const point = screenPoint(restaurant.position)
           const recommended = recommendationIds.has(restaurant.id)
           const confidence = confidenceFor(restaurant)
-          const showName = recommended || confidence !== 'high' || zoom >= 1.35
+          const showName = recommended || confidence !== 'high'
           const pointClass = getPointClass(restaurant.position)
-          const opacity = recommended ? 1 : confidence === 'none' ? .95 : confidence === 'low' ? .78 : .45
+          const opacity = recommended ? 1 : confidence === 'low' ? .78 : .45
           const transitionDelay = `${index * 20}ms`
           const distance = Math.hypot(restaurant.position[0] - taste[0], restaurant.position[1] - taste[1])
-          const magnet = dragging === 'user' ? 1 + Math.max(0, .35 * (1 - distance / .5)) : 1
-          const nameY = confidence === 'none' ? 32 : recommended ? 28 : 26
-          const statusLabel = confidence === 'none' ? '기록 없음' : confidence === 'low' ? '후기 적음' : '후기 충분'
+          const magnet = draggingUser ? 1 + Math.max(0, .35 * (1 - distance / .5)) : 1
+          const nameY = recommended ? 28 : 26
+          const statusLabel = confidence === 'low' ? '후기 적음' : '후기 충분'
           return (
             <g
               key={restaurant.id}
@@ -164,15 +141,12 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
             >
               <circle r={nodeHitRadius} className="node-hit-area" />
               <g transform={`scale(${magnet})`} className="node-magnet">
-                {recommended && <circle r={confidence === 'none' ? 26 : confidence === 'low' ? 20 : 15} className={`node-ring ${pointClass}`} />}
+                {recommended && <circle r={confidence === 'low' ? 20 : 15} className={`node-ring ${pointClass}`} />}
                 {confidence === 'high' && <circle r={recommended ? 9 : 6} className={`node-shape ${pointClass}`} />}
+                {confidence === 'low' && <circle r={recommended ? 22 : 20} className={`node-low-halo ${pointClass}`} />}
                 {confidence === 'low' && <path d={recommended ? 'M0 -12L12 0L0 12L-12 0Z' : 'M0 -10L10 0L0 10L-10 0Z'} className={`node-shape node-diamond ${pointClass}`} />}
-                {confidence === 'none' && <circle r={recommended ? 22 : 20} className={`node-unrecorded-halo ${pointClass}`} />}
-                {confidence === 'none' && <path d="M0 -15L4.2 -4.2L15 0L4.2 4.2L0 15L-4.2 4.2L-15 0L-4.2 -4.2Z" className={`node-shape node-star ${pointClass}`} />}
               </g>
               {showName && <text y={nameY} textAnchor="middle" className="prototype-node-name">{restaurant.name}</text>}
-              {confidence === 'none' && <text y="48" textAnchor="middle" className="prototype-node-status">기록 없음</text>}
-              {zoom >= 2.3 && <text y={confidence === 'none' ? 64 : nameY + 16} textAnchor="middle" className="prototype-node-category">{restaurant.category}</text>}
             </g>
           )
         })}
@@ -198,13 +172,7 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
       <div className="map-confidence-legend" aria-label="노드 모양 안내">
         <span><i className="legend-circle" />후기 충분</span>
         <span><i className="legend-diamond" />후기 적음</span>
-        <span><i className="legend-star">✦</i>기록 없음</span>
       </div>
-      <div className="map-zoom-controls">
-        <button onPointerDown={(event) => event.stopPropagation()} onClick={() => changeZoom(zoom * 1.25)} aria-label="확대">+</button>
-        <button onPointerDown={(event) => event.stopPropagation()} onClick={() => changeZoom(zoom / 1.25)} aria-label="축소">−</button>
-      </div>
-
       {loading && (
         <div className="map-loading">
           <span>{[

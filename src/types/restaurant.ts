@@ -6,7 +6,6 @@ export type Restaurant = {
   category: string
   reviews: number
   price: string
-  hidden?: boolean
   keywords: string[]
   quote: string
   source: string

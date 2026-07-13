@@ -445,7 +445,7 @@ export const globalStyles = css`
     border: 0;
     border-radius: 0;
     background: var(--background);
-    touch-action: none;
+    touch-action: auto;
   }
   .taste-map { display: block; width: 100%; height: 100%; user-select: none; }
   .map-base { fill: var(--background); }
@@ -483,7 +483,7 @@ export const globalStyles = css`
     stroke-width: 6px;
     stroke-linejoin: round;
   }
-  .taste-point { cursor: grab; outline: none; }
+  .taste-point { cursor: grab; outline: none; touch-action: none; }
   .is-dragging .taste-point { cursor: grabbing; }
   .taste-halo { fill: var(--accent); transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
   .taste-core { fill: var(--accent); }
@@ -520,9 +520,9 @@ export const globalStyles = css`
   .card-order { display: flex; flex: none; align-items: center; justify-content: center; width: 26px; height: 26px; border: 1px solid currentColor; border-radius: 50%; background: transparent; font-size: 12px; }
   .card-content { flex: 1; min-width: 0; }
   .card-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-  .card-title-row h3 { margin: 0; font-size: 17px; font-weight: 500; letter-spacing: -.01em; }
+  .card-title-row h3 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.25; letter-spacing: -.01em; }
+  .low-review-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border: 1px solid rgba(255, 159, 67, .35); border-radius: 999px; color: var(--accent); background: var(--halo); font-size: 10px; font-weight: 600; line-height: 1; white-space: nowrap; }
   .card-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .hidden-badge { padding: 2px 8px; border-radius: 999px; color: var(--accent); background: var(--halo); font-size: 11px; white-space: nowrap; }
   .recommendation-card blockquote { margin: 10px 0 0; overflow: hidden; color: var(--sub); font-size: 14px; line-height: 1.65; text-overflow: ellipsis; white-space: nowrap; }
   .card-chevron { align-self: center; flex: none; color: var(--muted); font-size: 18px; }
   .recommendation-note { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; }
@@ -545,7 +545,6 @@ export const globalStyles = css`
 
   .map-column { overflow: hidden; }
   .taste-map-shell { cursor: default; }
-  .taste-map-shell.is-pan { cursor: grabbing; }
   .map-wash { opacity: .035; }
   .prototype-node {
     cursor: pointer;
@@ -558,13 +557,9 @@ export const globalStyles = css`
   .node-ring { fill: none; stroke: currentColor; stroke-width: 1.2; opacity: .35; }
   .node-shape { stroke: none; }
   .node-diamond { fill: var(--background); stroke: currentColor; stroke-width: 2; }
-  .node-unrecorded-halo { opacity: .16; transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
-  .node-star { fill: var(--background); stroke: currentColor; stroke-width: 2.4; }
+  .node-low-halo { opacity: .16; transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
   .prototype-node-name { fill: var(--ink); font-size: 12px; font-weight: 400; letter-spacing: -.01em; paint-order: stroke; stroke: var(--background); stroke-width: 5px; stroke-linejoin: round; }
   .prototype-node.is-low .prototype-node-name { font-size: 13px; font-weight: 500; }
-  .prototype-node.is-none .prototype-node-name { font-size: 14px; font-weight: 650; }
-  .prototype-node-status { fill: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: .03em; paint-order: stroke; stroke: var(--background); stroke-width: 5px; stroke-linejoin: round; }
-  .prototype-node-category { fill: var(--muted); font-size: 11px; paint-order: stroke; stroke: var(--background); stroke-width: 4px; }
   .taste-bubble { fill: var(--quote); stroke: #3a3733; stroke-width: 1; }
   .taste-bubble-label { fill: var(--ink); font-size: 12px; font-weight: 400; letter-spacing: -.01em; }
   .map-label-layer { position: absolute; inset: 0; pointer-events: none; color: #b8b3a9; font-size: 13px; font-weight: 500; letter-spacing: -.01em; }
@@ -586,13 +581,6 @@ export const globalStyles = css`
   .map-confidence-legend i { display: inline-block; flex: none; width: 9px; height: 9px; }
   .legend-circle { border-radius: 50%; background: var(--sub); }
   .legend-diamond { border: 1.5px solid var(--sub); background: var(--background); transform: rotate(45deg) scale(.72); }
-  .legend-star { width: 14px !important; height: 14px !important; color: var(--sub); font-size: 15px; line-height: 14px; }
-  .map-zoom-controls { position: absolute; right: 20px; bottom: 78px; display: flex; flex-direction: column; gap: 8px; }
-  .map-zoom-controls button {
-    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--line); border-radius: 8px;
-    color: var(--sub); background: var(--card); cursor: pointer; font-size: 20px; line-height: 1; transition: all 150ms cubic-bezier(.4, 0, .2, 1);
-  }
-  .map-zoom-controls button:hover { border-color: #3a3733; color: var(--ink); background: var(--quote); }
   .map-loading { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; background: var(--background); }
   .map-loading > span { color: var(--sub); font-size: 15px; line-height: 1.6; letter-spacing: -.01em; text-align: center; }
   .map-loading > div { width: 160px; height: 1px; overflow: hidden; background: var(--line); }
@@ -625,8 +613,7 @@ export const globalStyles = css`
   .sidebar-color-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
   .sidebar-heading h2 { margin: 0; font-size: 26px; font-weight: 500; line-height: 1.35; letter-spacing: -.01em; }
   .sidebar-heading p { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
-  .sidebar-caution, .sidebar-unrecorded { margin-top: 18px; display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--sub); background: var(--quote); font-size: 14px; line-height: 1.55; }
-  .sidebar-unrecorded { align-items: center; padding: 16px 18px; color: var(--ink); font-size: 16px; }
+  .sidebar-caution { margin-top: 18px; display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--sub); background: var(--quote); font-size: 14px; line-height: 1.55; }
   .sidebar-section { margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--line); }
   .sidebar-section h3 { margin: 0 0 18px; color: var(--sub); font-size: 15px; font-weight: 400; letter-spacing: -.01em; }
   .sidebar-position h3 { margin-bottom: 14px; }
@@ -636,7 +623,6 @@ export const globalStyles = css`
   .sidebar-position .detail-map-card svg { width: 100%; height: auto; margin: 0; aspect-ratio: 7 / 4; border-radius: 0; }
   .sidebar-position .detail-map-card > p { display: none; }
   .quadrant-caption { margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
-  .sidebar-estimate { margin: 14px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
   .mention-list { display: flex; flex-direction: column; gap: 16px; }
   .mention-item > p { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; font-size: 17px; }
   .mention-item > p span:last-child { color: var(--muted); font-size: 14px; }
@@ -645,13 +631,6 @@ export const globalStyles = css`
   .sidebar-snippets { display: flex; flex-direction: column; gap: 10px; }
   .sidebar-snippets blockquote { margin: 0; padding: 16px 18px; border-left: 3px solid var(--accent); border-radius: 10px; color: var(--ink); background: var(--quote); font-size: 17px; line-height: 1.7; letter-spacing: -.01em; }
   .snippet-source { margin: 14px 0 0; color: var(--muted); font-size: 13px; text-align: right; }
-  .sidebar-facts { display: flex; flex-direction: column; gap: 12px; margin: 0; }
-  .sidebar-facts > div { display: flex; gap: 16px; }
-  .sidebar-facts dt { flex: none; width: 52px; color: var(--muted); font-size: 14px; }
-  .sidebar-facts dd { margin: 0; color: var(--ink); font-size: 17px; }
-  .sidebar-first-guest { margin-top: 24px; padding: 20px; border: 1px solid #7a4e1f; border-radius: 10px; background: var(--quote); }
-  .sidebar-first-guest p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.7; }
-  .sidebar-first-guest strong { display: block; margin-top: 12px; color: var(--accent); font-size: 17px; font-weight: 500; line-height: 1.6; }
   .sidebar-location-panel .detail-map-card .location-map { width: 100%; height: auto; aspect-ratio: 7 / 4; border: 0; border-radius: 0; background: var(--background); }
   .sidebar-address { margin: 12px 0 0; font-size: 15px; line-height: 1.45; }
   .sidebar-location-note { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -683,9 +662,6 @@ export const globalStyles = css`
   .review-evidence { margin-top: 28px; }
   .section-kicker { margin: 0; color: var(--sub); font-size: 11.5px; letter-spacing: .12em; }
   .review-evidence h2 { margin: 6px 0 0; font-family: var(--serif); font-size: 17px; font-weight: 500; }
-  .detail-unrecorded-callout { margin-top: 28px; padding: 18px; border: 1px solid #7a4e1f; border-radius: 12px; background: var(--quote); }
-  .detail-unrecorded-callout h2 { margin: 6px 0 0; color: var(--accent); font-family: var(--serif); font-size: 18px; font-weight: 500; }
-  .detail-unrecorded-callout > p:last-child { margin: 10px 0 0; color: var(--sub); font-size: 14px; line-height: 1.7; }
   .review-quote-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
   .review-quote-list blockquote { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--quote); }
   .review-quote-list p { margin: 0; font-size: 14px; line-height: 1.7; }
@@ -699,7 +675,6 @@ export const globalStyles = css`
   .detail-map-wash { opacity: .05; }
   .detail-map-ring { opacity: .35; stroke-width: 1; }
   .detail-map-low { stroke-width: 1.5; }
-  .detail-map-unrecorded { stroke-width: 1; stroke-dasharray: 1.2 1.2; }
   .detail-map-active { filter: drop-shadow(0 0 1.4px var(--accent)); }
   .detail-map-card p { margin: 8px 0 0; color: var(--sub); font-size: 12px; text-align: center; }
   .location-map { position: relative; background: var(--quote); }
@@ -708,6 +683,9 @@ export const globalStyles = css`
   .road-vertical { top: 0; bottom: 0; left: 28%; width: 9%; opacity: .8; }
   .road-diagonal { top: -10%; bottom: -10%; left: 64%; width: 7%; opacity: .6; transform: rotate(14deg); }
   .location-pin { position: absolute; top: 38%; left: 22%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px var(--halo); }
+  .detail-closing-promo { margin-top: 36px; padding: 22px; border: 1px solid rgba(255, 159, 67, .24); border-radius: 12px; background: linear-gradient(135deg, var(--halo), var(--card)); }
+  .detail-closing-promo span { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
+  .detail-closing-promo strong { display: block; margin-top: 8px; color: var(--ink); font-family: var(--serif); font-size: 18px; font-weight: 500; line-height: 1.6; }
   .detail-actions { display: flex; gap: 10px; max-width: 480px; margin-top: 32px; }
   .detail-actions button, .detail-actions a {
     flex: 1;

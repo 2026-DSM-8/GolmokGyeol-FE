@@ -37,15 +37,7 @@ export function TastePositionMap({ restaurant }: { restaurant: Restaurant }) {
           )
         })}
         <circle cx={toPoint(restaurant.position).x} cy={toPoint(restaurant.position).y} r="12" fill="none" stroke={getColor(restaurant.position)} className="detail-map-ring" />
-        {restaurant.hidden ? (
-          <path
-            d="M0 -6L1.7 -1.7L6 0L1.7 1.7L0 6L-1.7 1.7L-6 0L-1.7 -1.7Z"
-            transform={`translate(${toPoint(restaurant.position).x} ${toPoint(restaurant.position).y})`}
-            fill="none"
-            stroke={getColor(restaurant.position)}
-            className="detail-map-unrecorded"
-          />
-        ) : restaurant.reviews < 40 ? (
+        {restaurant.reviews < 40 ? (
           <path
             d="M0 -6L6 0L0 6L-6 0Z"
             transform={`translate(${toPoint(restaurant.position).x} ${toPoint(restaurant.position).y})`}
