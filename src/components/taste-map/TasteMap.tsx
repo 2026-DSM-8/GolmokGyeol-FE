@@ -35,8 +35,21 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
   const [dragging, setDragging] = useState<DragMode>(null)
   const [loadStep, setLoadStep] = useState(0)
   const [coach, setCoach] = useState(0)
+  const [mapPixelWidth, setMapPixelWidth] = useState(1000)
   const recommendationIds = new Set(recommendations.map((restaurant) => restaurant.id))
   const userPoint = screenPoint(taste, zoom, pan)
+  const nodeHitRadius = Math.max(24, 24 * 1000 / mapPixelWidth)
+
+  useEffect(() => {
+    const shell = shellRef.current
+    if (!shell) return
+
+    const updateWidth = () => setMapPixelWidth(Math.max(1, shell.getBoundingClientRect().width))
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(shell)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     if (loading) {
@@ -93,13 +106,14 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
       return
     }
     setCoach(3)
-    onTasteChange([.5, taste[1]])
     window.setTimeout(finishCoach, 1100)
   }
   const budget = taste[0] < -.15 ? '저렴' : taste[0] > .15 ? '좀 비쌈' : '중간 가격'
   const pace = taste[1] > .15 ? '오래 머물기' : taste[1] < -.15 ? '후딱 먹기' : '적당히'
   const bubble = `${budget} · ${pace}`
-  const bubbleWidth = bubble.length * 12 + 16
+  const bubbleWidth = [...bubble].reduce((width, character) => (
+    width + (character === ' ' ? 4 : character === '·' ? 5 : 12)
+  ), 10)
 
   return (
     <div
@@ -122,35 +136,43 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
           const point = screenPoint(restaurant.position, zoom, pan)
           const recommended = recommendationIds.has(restaurant.id)
           const confidence = confidenceFor(restaurant)
-          const showName = recommended || zoom >= 1.35
+          const showName = recommended || confidence !== 'high' || zoom >= 1.35
           const pointClass = getPointClass(restaurant.position)
-          const opacity = recommended ? 1 : .45
+          const opacity = recommended ? 1 : confidence === 'none' ? .95 : confidence === 'low' ? .78 : .45
           const transitionDelay = `${index * 20}ms`
           const distance = Math.hypot(restaurant.position[0] - taste[0], restaurant.position[1] - taste[1])
           const magnet = dragging === 'user' ? 1 + Math.max(0, .35 * (1 - distance / .5)) : 1
+          const nameY = confidence === 'none' ? 32 : recommended ? 28 : 26
+          const statusLabel = confidence === 'none' ? '기록 없음' : confidence === 'low' ? '후기 적음' : '후기 충분'
           return (
             <g
               key={restaurant.id}
-              className={`prototype-node ${recommended ? 'is-recommended' : ''}`}
+              className={`prototype-node is-${confidence} ${recommended ? 'is-recommended' : ''}`}
               transform={`translate(${point.x} ${point.y})`}
               style={{ opacity, transitionDelay }}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => { event.stopPropagation(); onOpenRestaurant(restaurant) }}
               role="button"
               tabIndex={0}
-              aria-label={`${restaurant.name} 상세 보기`}
+              aria-label={`${restaurant.name}, ${statusLabel}, 상세 보기`}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') onOpenRestaurant(restaurant)
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onOpenRestaurant(restaurant)
+                }
               }}
             >
+              <circle r={nodeHitRadius} className="node-hit-area" />
               <g transform={`scale(${magnet})`} className="node-magnet">
-                {recommended && <circle r="15" className={`node-ring ${pointClass}`} />}
+                {recommended && <circle r={confidence === 'none' ? 26 : confidence === 'low' ? 20 : 15} className={`node-ring ${pointClass}`} />}
                 {confidence === 'high' && <circle r={recommended ? 9 : 6} className={`node-shape ${pointClass}`} />}
-                {confidence === 'low' && <path d={recommended ? 'M0 -9L9 0L0 9L-9 0Z' : 'M0 -7L7 0L0 7L-7 0Z'} className={`node-shape node-diamond ${pointClass}`} />}
-                {confidence === 'none' && <path d="M0 -9L2.6 -2.6L9 0L2.6 2.6L0 9L-2.6 2.6L-9 0L-2.6 -2.6Z" className={`node-shape node-star ${pointClass}`} />}
+                {confidence === 'low' && <path d={recommended ? 'M0 -12L12 0L0 12L-12 0Z' : 'M0 -10L10 0L0 10L-10 0Z'} className={`node-shape node-diamond ${pointClass}`} />}
+                {confidence === 'none' && <circle r={recommended ? 22 : 20} className={`node-unrecorded-halo ${pointClass}`} />}
+                {confidence === 'none' && <path d="M0 -15L4.2 -4.2L15 0L4.2 4.2L0 15L-4.2 4.2L-15 0L-4.2 -4.2Z" className={`node-shape node-star ${pointClass}`} />}
               </g>
-              {showName && <text y={recommended ? 28 : 24} textAnchor="middle" className="prototype-node-name">{restaurant.name}</text>}
-              {zoom >= 2.3 && <text y={recommended ? 44 : 40} textAnchor="middle" className="prototype-node-category">{restaurant.category}</text>}
+              {showName && <text y={nameY} textAnchor="middle" className="prototype-node-name">{restaurant.name}</text>}
+              {confidence === 'none' && <text y="48" textAnchor="middle" className="prototype-node-status">기록 없음</text>}
+              {zoom >= 2.3 && <text y={confidence === 'none' ? 64 : nameY + 16} textAnchor="middle" className="prototype-node-category">{restaurant.category}</text>}
             </g>
           )
         })}

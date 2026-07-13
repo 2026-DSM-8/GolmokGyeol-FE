@@ -25,3 +25,17 @@ export const getRecommendations = (items: Restaurant[], taste: TastePoint, count
 
 export const getMatchRate = (restaurant: Restaurant, taste: TastePoint) =>
   Math.round(Math.max(72, 98 - getTasteDistance(restaurant, taste) * 25))
+
+export const getPromotionalComment = (restaurant: Restaurant) => {
+  const highlights = restaurant.keywords.slice(0, 2).map((keyword) => `‘${keyword}’`).join(', ')
+
+  if (restaurant.hidden) {
+    return `아직 기록보다 발견이 먼저인 ${restaurant.category}집이에요. ${highlights} 같은 매력이 궁금하다면 골목의 첫 손님이 되어보세요.`
+  }
+
+  if (restaurant.reviews < 40) {
+    return `아직 많이 알려지지 않은 ${restaurant.category}집이에요. ${highlights} 같은 매력을 직접 확인해보세요.`
+  }
+
+  return `${highlights} 같은 매력을 찾는 날 들러보세요. 오늘의 취향에 잘 맞을지도 몰라요.`
+}
