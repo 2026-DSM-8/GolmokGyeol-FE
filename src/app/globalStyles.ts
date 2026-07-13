@@ -34,7 +34,6 @@ export const globalStyles = css`
     outline-offset: 3px;
   }
   a { color: inherit; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .point-violet { color: var(--violet); fill: var(--violet); background: var(--violet); }
   .point-orange { color: var(--orange); fill: var(--orange); background: var(--orange); }
   .point-green { color: var(--green); fill: var(--green); background: var(--green); }
@@ -51,10 +50,6 @@ export const globalStyles = css`
   @keyframes halo-breathe {
     0%, 100% { opacity: .18; transform: scale(.88); }
     50% { opacity: .3; transform: scale(1.12); }
-  }
-  @keyframes gk-pulse {
-    0%, 100% { opacity: .35; }
-    50% { opacity: .7; }
   }
   @keyframes loading-line {
     from { transform: scaleX(0); }
@@ -76,14 +71,6 @@ export const globalStyles = css`
     100% { transform: translate(-13px, -8px); }
   }
 
-  .landing-page {
-    position: relative;
-    height: 100vh;
-    min-height: 740px;
-    overflow: hidden;
-    color: var(--ink);
-    background: var(--background);
-  }
   .taste-backdrop {
     position: absolute;
     inset: 0;
@@ -103,125 +90,6 @@ export const globalStyles = css`
   .drift-0 { animation-name: drift-0; }
   .drift-1 { animation-name: drift-1; }
   .drift-2 { animation-name: drift-2; }
-  .landing-content {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    animation: fade-up 700ms cubic-bezier(.2, .6, .3, 1) both;
-  }
-  .landing-brand {
-    margin: 0;
-    color: var(--sub);
-    font-size: 12px;
-    letter-spacing: .55em;
-    text-indent: .55em;
-  }
-  .landing-content h1 {
-    margin: 20px 0 0;
-    color: var(--ink);
-    font-family: var(--serif);
-    font-size: clamp(28px, 4.6vw, 42px);
-    font-weight: 500;
-    line-height: 1.5;
-    text-align: center;
-  }
-  .landing-lede { margin: 14px 0 0; color: var(--sub); font-size: 15px; text-align: center; }
-  .landing-search {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: min(620px, 90vw);
-    margin-top: 34px;
-  }
-  .location-filter {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr;
-    align-items: end;
-    gap: 10px;
-    width: 100%;
-    padding: 14px 18px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: rgba(33, 31, 27, .88);
-    backdrop-filter: blur(12px);
-  }
-  .location-filter label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-  .location-filter label > span { color: var(--sub); font-size: 11px; letter-spacing: .08em; }
-  .location-filter select {
-    width: 100%;
-    min-width: 0;
-    padding: 9px 30px 9px 11px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    outline: 0;
-    color: var(--ink);
-    background: var(--quote);
-    cursor: pointer;
-    font: inherit;
-    font-size: 13px;
-  }
-  .location-filter select:focus { border-color: var(--sub); box-shadow: 0 0 0 3px var(--halo); }
-  .location-filter select:disabled { color: var(--sub); cursor: not-allowed; opacity: .5; }
-  .location-filter select[aria-invalid='true'] { border-color: var(--orange); }
-  .location-divider { align-self: center; margin-top: 16px; color: var(--sub); font-size: 18px; }
-  .search-form {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: min(560px, 100%);
-    margin-top: 12px;
-    padding: 6px 6px 6px 24px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--card);
-    transition: border-color 150ms ease, box-shadow 150ms ease;
-  }
-  .search-form:focus-within { border-color: var(--sub); box-shadow: 0 0 0 5px var(--halo); }
-  .search-form input {
-    flex: 1;
-    min-width: 0;
-    padding: 8px 0;
-    border: 0;
-    outline: 0;
-    color: var(--ink);
-    background: transparent;
-    font-size: 15px;
-    letter-spacing: .01em;
-  }
-  .search-form input::placeholder { color: var(--sub); opacity: .65; }
-  .search-form button {
-    flex: none;
-    padding: 10px 22px;
-    border: 0;
-    border-radius: 999px;
-    color: var(--background);
-    background: var(--ink);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .search-error { align-self: stretch; margin: 9px 2px 0; color: #df7b58; font-size: 12.5px; text-align: center; }
-  .search-examples { max-width: min(640px, 90vw); margin-top: 20px; }
-  .search-examples > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-  .search-examples button {
-    padding: 8px 16px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    color: var(--sub);
-    background: transparent;
-    cursor: pointer;
-    font-size: 13px;
-    letter-spacing: .01em;
-    transition: color 150ms ease, border-color 150ms ease;
-  }
-  .search-examples button:hover { color: var(--ink); border-color: var(--sub); }
-  .landing-footer { margin-top: 56px; color: var(--sub); font-size: 12px; letter-spacing: .08em; }
-
   .prototype-flow { position: relative; min-height: 100dvh; overflow: hidden; background: var(--background); }
   .prototype-flow > .taste-backdrop { position: fixed; z-index: 0; filter: blur(14px); opacity: .18; }
   .prototype-flow > :not(.taste-backdrop) { position: relative; z-index: 1; }
@@ -395,8 +263,6 @@ export const globalStyles = css`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .map-query-form { display: flex; flex: 1; min-width: 0; }
-  .map-query-form input { width: 100%; padding: 7px 12px; outline: 0; border: 1px solid var(--accent); border-radius: 8px; background: var(--card); }
   .map-edit-button {
     flex: none;
     height: 32px;
@@ -448,41 +314,7 @@ export const globalStyles = css`
     touch-action: auto;
   }
   .taste-map { display: block; width: 100%; height: 100%; user-select: none; }
-  .map-base { fill: var(--background); }
   .axis-line { fill: none; stroke: var(--line); stroke-width: 1.4; stroke-dasharray: 6 6; }
-  .axis-label {
-    fill: #d2cec5;
-    font-size: 24px;
-    font-weight: 650;
-    letter-spacing: .04em;
-    paint-order: stroke;
-    stroke: var(--background);
-    stroke-width: 8px;
-    stroke-linejoin: round;
-  }
-  .quadrant-label {
-    font-size: 23px;
-    font-weight: 700;
-    letter-spacing: .05em;
-    opacity: 1;
-    paint-order: stroke;
-    stroke: var(--background);
-    stroke-width: 8px;
-    stroke-linejoin: round;
-  }
-  .restaurant-point { cursor: pointer; opacity: .3; transition: opacity 150ms ease, r 150ms ease; }
-  .restaurant-point.recommended { opacity: 1; }
-  .restaurant-point:hover { opacity: 1; }
-  .restaurant-label {
-    pointer-events: none;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: .02em;
-    paint-order: stroke;
-    stroke: var(--background);
-    stroke-width: 6px;
-    stroke-linejoin: round;
-  }
   .taste-point { cursor: grab; outline: none; touch-action: none; }
   .is-dragging .taste-point { cursor: grabbing; }
   .taste-halo { fill: var(--accent); transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
@@ -523,25 +355,9 @@ export const globalStyles = css`
   .card-title-row h3 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.25; letter-spacing: -.01em; }
   .low-review-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border: 1px solid rgba(255, 159, 67, .35); border-radius: 999px; color: var(--accent); background: var(--halo); font-size: 10px; font-weight: 600; line-height: 1; white-space: nowrap; }
   .card-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .recommendation-card blockquote { margin: 10px 0 0; overflow: hidden; color: var(--sub); font-size: 14px; line-height: 1.65; text-overflow: ellipsis; white-space: nowrap; }
   .card-chevron { align-self: center; flex: none; color: var(--muted); font-size: 18px; }
   .recommendation-note { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; }
-  .restaurant-sidebar { min-height: 100%; padding: 28px 28px 36px; animation: fade-up 240ms cubic-bezier(.2, .6, .3, 1) both; }
-  .restaurant-sidebar .detail-back-button { color: var(--muted); font-size: 13px; }
-  .restaurant-sidebar .detail-summary { margin-top: 24px; }
-  .restaurant-sidebar .detail-summary h1 { font-family: inherit; font-size: 28px; }
-  .restaurant-sidebar .detail-meta-row { font-size: 14px; }
-  .restaurant-sidebar .detail-keywords span { padding: 7px 15px; font-size: 13.5px; }
-  .restaurant-sidebar .review-evidence { margin-top: 30px; }
-  .restaurant-sidebar .review-evidence h2 { font-size: 20px; }
-  .restaurant-sidebar .review-quote-list { gap: 12px; }
-  .restaurant-sidebar .review-quote-list blockquote { padding: 16px 18px; }
-  .restaurant-sidebar .review-quote-list p { font-size: 14px; }
-  .restaurant-sidebar .detail-map-grid { margin-top: 26px; }
   .restaurant-sidebar .detail-map-card p { font-size: 13px; }
-  .restaurant-sidebar .detail-actions { margin-top: 28px; max-width: none; }
-  .restaurant-sidebar .detail-actions button,
-  .restaurant-sidebar .detail-actions a { padding: 14px 18px; font-size: 15px; }
 
   .map-column { overflow: hidden; }
   .taste-map-shell { cursor: default; }
@@ -723,14 +539,6 @@ export const globalStyles = css`
     .prototype-example-grid, .reask-grid { grid-template-columns: 1fr; }
     .coach-caption { width: 210px; }
     .coach-caption strong { font-size: 17px; }
-    .landing-content { padding: 20px; }
-    .landing-content h1 { font-size: 30px; }
-    .landing-lede { font-size: 13px; }
-    .landing-search { width: 100%; }
-    .location-filter { grid-template-columns: 1fr; gap: 10px; padding: 14px; }
-    .location-divider { display: none; }
-    .search-examples > div { flex-direction: column; }
-    .search-examples button { width: 100%; }
     .map-query-header { gap: 9px; padding: 0 12px; }
     .map-location-name { display: none; }
     .map-result-summary { padding: 10px 14px; }
@@ -740,8 +548,6 @@ export const globalStyles = css`
     .restaurant-sidebar { padding: 0; }
     .sidebar-scroll { padding: 24px 18px 32px; }
     .sidebar-map-pair { grid-template-columns: 1fr; gap: 24px; }
-    .axis-label { font-size: 28px; }
-    .quadrant-label { font-size: 26px; }
     .recommendation-rail { min-width: 0; }
     .detail-container { padding: 20px 18px 48px; }
     .detail-summary h1 { font-size: 30px; }

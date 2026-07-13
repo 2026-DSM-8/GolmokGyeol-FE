@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import { searchSuggestions } from '../mocks/restaurants'
+import { defaultSearchQuery } from '../mocks/restaurants'
 import type { TastePoint } from '../types/restaurant'
 
-export const initialTaste: TastePoint = [-0.48, -0.45]
+const initialTaste: TastePoint = [-0.48, -0.45]
 
 export type SearchScope = {
   city: string
@@ -23,15 +23,13 @@ type TasteStore = {
   setQuery: (query: string) => void
   setTaste: (taste: TastePoint) => void
   setSearchScope: (scope: SearchScope) => void
-  resetTaste: () => void
 }
 
 export const useTasteStore = create<TasteStore>((set) => ({
-  query: searchSuggestions[0],
+  query: defaultSearchQuery,
   taste: initialTaste,
   searchScope: initialSearchScope,
   setQuery: (query) => set({ query }),
   setTaste: (taste) => set({ taste }),
   setSearchScope: (searchScope) => set({ searchScope }),
-  resetTaste: () => set({ taste: initialTaste }),
 }))
