@@ -18,13 +18,18 @@ export function RecommendationCard({ restaurant, order, onClick }: Recommendatio
       onClick={onClick}
       style={{ '--card-delay': `${order * 55}ms` } as CSSProperties}
     >
-      <div className="card-title-row">
-        <span className={`card-swatch ${getPointClass(restaurant.position)}`} />
-        <h3>{restaurant.name}</h3>
-        <span className="card-meta">{restaurant.category} · 후기 {restaurant.reviews}건</span>
-        {restaurant.hidden && <span className="hidden-badge">숨은 가게</span>}
+      <span className={`card-order ${getPointClass(restaurant.position)}`}>{order}</span>
+      <div className="card-content">
+        <div className="card-title-row">
+          <h3>{restaurant.name}</h3>
+        </div>
+        <span className="card-meta">{restaurant.category} · {restaurant.hidden ? '후기 없음' : `후기 ${restaurant.reviews}건`}</span>
+        <p className="card-summary">“{restaurant.quote}”</p>
+        <div className="card-keywords" aria-label="대표 특징">
+          {restaurant.keywords.slice(0, 2).map((keyword) => <span key={keyword}>{keyword}</span>)}
+        </div>
       </div>
-      <blockquote>“{restaurant.quote}”</blockquote>
+      <svg className="card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
     </button>
   )
 }

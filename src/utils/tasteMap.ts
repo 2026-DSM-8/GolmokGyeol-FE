@@ -18,8 +18,10 @@ export const toMapPoint = ([x, y]: TastePoint) => ({
 export const getTasteDistance = (restaurant: Restaurant, taste: TastePoint) =>
   Math.hypot(restaurant.position[0] - taste[0], restaurant.position[1] - taste[1])
 
-export const getRecommendations = (items: Restaurant[], taste: TastePoint, count = 3) =>
-  [...items].sort((a, b) => getTasteDistance(a, taste) - getTasteDistance(b, taste)).slice(0, count)
+export const getRecommendations = (items: Restaurant[], taste: TastePoint, count = 5) =>
+  [...items]
+    .sort((a, b) => getTasteDistance(a, taste) - getTasteDistance(b, taste))
+    .slice(0, count)
 
 export const getMatchRate = (restaurant: Restaurant, taste: TastePoint) =>
   Math.round(Math.max(72, 98 - getTasteDistance(restaurant, taste) * 25))
