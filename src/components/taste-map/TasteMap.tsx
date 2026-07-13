@@ -46,20 +46,26 @@ export function TasteMap({ taste, onTasteChange, onOpenRestaurant, recommendatio
           const point = toPoint(restaurant.position)
           const recommended = recommendationIds.has(restaurant.id)
           return (
-            <circle
-              key={restaurant.id}
-              cx={point.x}
-              cy={point.y}
-              r={recommended ? 12 : 8}
-              className={`restaurant-point ${getPointClass(restaurant.position)} ${recommended ? 'recommended' : ''}`}
-              onClick={() => onOpenRestaurant(restaurant)}
-              role="button"
-              tabIndex={0}
-              aria-label={`${restaurant.name} 상세 보기`}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') onOpenRestaurant(restaurant)
-              }}
-            />
+            <g key={restaurant.id}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={recommended ? 12 : 8}
+                className={`restaurant-point ${getPointClass(restaurant.position)} ${recommended ? 'recommended' : ''}`}
+                onClick={() => onOpenRestaurant(restaurant)}
+                role="button"
+                tabIndex={0}
+                aria-label={`${restaurant.name} 상세 보기`}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') onOpenRestaurant(restaurant)
+                }}
+              />
+              {recommended && (
+                <text x={point.x + 20} y={point.y + 5} className={`restaurant-label ${getPointClass(restaurant.position)}`}>
+                  {restaurant.name}
+                </text>
+              )}
+            </g>
           )
         })}
         <g

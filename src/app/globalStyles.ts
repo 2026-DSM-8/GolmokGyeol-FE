@@ -174,8 +174,8 @@ export const globalStyles = css`
   .search-examples button:hover { color: var(--ink); border-color: var(--sub); }
   .landing-footer { margin-top: 56px; color: var(--sub); font-size: 12px; letter-spacing: .08em; }
 
-  .map-page { min-height: 100vh; color: var(--ink); background: var(--background); }
-  .map-query-header { padding: 18px 24px 0; }
+  .map-page { display: flex; flex-direction: column; height: 100dvh; min-height: 640px; overflow: hidden; color: var(--ink); background: var(--background); }
+  .map-query-header { flex: none; padding: 18px 24px 0; }
   .map-query-row { display: flex; align-items: center; gap: 10px; }
   .map-back-button {
     padding: 4px 8px 4px 0;
@@ -215,20 +215,26 @@ export const globalStyles = css`
   }
   .map-query-chips button:hover { color: var(--ink); border-color: var(--sub); }
   .map-layout {
-    --map-size: clamp(620px, calc(100vh - 147px), 760px);
+    flex: 1;
+    min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, var(--map-size)) minmax(320px, 440px);
-    align-items: flex-start;
-    justify-content: center;
+    grid-template-columns: auto minmax(320px, 1fr);
+    align-items: stretch;
     gap: 28px;
     width: 100%;
-    max-width: 1440px;
-    margin: 0 auto;
-    padding: 22px 24px 44px;
+    padding: 22px 24px 24px;
   }
-  .map-column { min-width: 0; }
+  .map-column {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: min(calc(100dvh - 146px), calc(100vw - 396px));
+    min-width: 0;
+    min-height: 0;
+  }
   .taste-map-shell {
     position: relative;
+    flex: none;
     overflow: hidden;
     width: 100%;
     aspect-ratio: 1;
@@ -245,11 +251,29 @@ export const globalStyles = css`
   .restaurant-point { cursor: pointer; opacity: .3; transition: opacity 150ms ease, r 150ms ease; }
   .restaurant-point.recommended { opacity: 1; }
   .restaurant-point:hover { opacity: 1; }
+  .restaurant-label {
+    pointer-events: none;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
   .taste-point { cursor: grab; outline: none; }
   .is-dragging .taste-point { cursor: grabbing; }
   .taste-halo { fill: var(--accent); transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
   .taste-core { fill: var(--accent); }
-  .recommendation-rail { min-width: 0; }
+  .recommendation-rail {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
   .taste-traits { min-height: 22px; margin: 0 0 12px; color: var(--sub); font-size: 13px; letter-spacing: .03em; }
   .taste-traits span { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--accent); }
   .recommendation-list { display: flex; flex-direction: column; gap: 12px; }
@@ -272,6 +296,29 @@ export const globalStyles = css`
   .card-meta { color: var(--sub); font-size: 12px; white-space: nowrap; }
   .hidden-badge { padding: 2px 8px; border-radius: 999px; color: var(--accent); background: var(--halo); font-size: 11px; white-space: nowrap; }
   .recommendation-card blockquote { margin: 8px 0 0; overflow: hidden; color: var(--sub); font-size: 13.5px; line-height: 1.65; text-overflow: ellipsis; white-space: nowrap; }
+  .recommendation-rail .taste-traits { margin-bottom: 16px; font-size: 14px; }
+  .recommendation-rail .recommendation-list { gap: 16px; }
+  .recommendation-rail .recommendation-card { padding: 22px 24px; }
+  .recommendation-rail .card-title-row { gap: 12px; }
+  .recommendation-rail .card-title-row h3 { font-size: 20px; }
+  .recommendation-rail .card-meta { font-size: 13px; }
+  .recommendation-rail .hidden-badge { font-size: 12px; }
+  .recommendation-rail .recommendation-card blockquote { margin-top: 12px; font-size: 15px; }
+  .restaurant-sidebar { padding-bottom: 12px; animation: fade-up 240ms cubic-bezier(.2, .6, .3, 1) both; }
+  .restaurant-sidebar .detail-summary { margin-top: 20px; }
+  .restaurant-sidebar .detail-summary h1 { font-size: 38px; }
+  .restaurant-sidebar .detail-meta-row { font-size: 14px; }
+  .restaurant-sidebar .detail-keywords span { padding: 7px 15px; font-size: 13.5px; }
+  .restaurant-sidebar .review-evidence { margin-top: 30px; }
+  .restaurant-sidebar .review-evidence h2 { font-size: 20px; }
+  .restaurant-sidebar .review-quote-list { gap: 12px; }
+  .restaurant-sidebar .review-quote-list blockquote { padding: 16px 18px; }
+  .restaurant-sidebar .review-quote-list p { font-size: 14px; }
+  .restaurant-sidebar .detail-map-grid { margin-top: 26px; }
+  .restaurant-sidebar .detail-map-card p { font-size: 13px; }
+  .restaurant-sidebar .detail-actions { margin-top: 28px; max-width: none; }
+  .restaurant-sidebar .detail-actions button,
+  .restaurant-sidebar .detail-actions a { padding: 14px 18px; font-size: 15px; }
 
   .detail-page { min-height: 100vh; color: var(--ink); background: var(--background); animation: fade-up 400ms cubic-bezier(.2, .6, .3, 1) both; }
   .detail-container { width: 100%; max-width: 760px; margin: 0 auto; padding: 24px 24px 64px; }
@@ -328,8 +375,11 @@ export const globalStyles = css`
   .detail-actions a { border: 1px solid var(--line); color: var(--ink); background: transparent; }
 
   @media (max-width: 900px) {
+    .map-page { height: auto; min-height: 100vh; overflow: visible; }
     .map-layout { display: flex; flex-direction: column; }
     .map-column, .recommendation-rail { width: 100%; }
+    .taste-map-shell { width: 100%; }
+    .recommendation-rail { height: auto; overflow: visible; padding-right: 0; }
   }
 
   @media (max-width: 640px) {
