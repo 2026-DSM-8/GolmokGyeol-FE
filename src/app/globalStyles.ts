@@ -70,7 +70,7 @@ export const globalStyles = css`
   .landing-page {
     position: relative;
     height: 100vh;
-    min-height: 680px;
+    min-height: 740px;
     overflow: hidden;
     color: var(--ink);
     background: var(--background);
@@ -122,12 +122,50 @@ export const globalStyles = css`
     text-align: center;
   }
   .landing-lede { margin: 14px 0 0; color: var(--sub); font-size: 15px; text-align: center; }
+  .landing-search {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(620px, 90vw);
+    margin-top: 34px;
+  }
+  .location-filter {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: end;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(33, 31, 27, .88);
+    backdrop-filter: blur(12px);
+  }
+  .location-filter label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .location-filter label > span { color: var(--sub); font-size: 11px; letter-spacing: .08em; }
+  .location-filter select {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 30px 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    outline: 0;
+    color: var(--ink);
+    background: var(--quote);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+  .location-filter select:focus { border-color: var(--sub); box-shadow: 0 0 0 3px var(--halo); }
+  .location-filter select:disabled { color: var(--sub); cursor: not-allowed; opacity: .5; }
+  .location-filter select[aria-invalid='true'] { border-color: var(--orange); }
+  .location-divider { align-self: center; margin-top: 16px; color: var(--sub); font-size: 18px; }
   .search-form {
     display: flex;
     align-items: center;
     gap: 6px;
-    width: min(560px, 86vw);
-    margin-top: 38px;
+    width: min(560px, 100%);
+    margin-top: 12px;
     padding: 6px 6px 6px 24px;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -158,6 +196,7 @@ export const globalStyles = css`
     font-size: 14px;
     font-weight: 500;
   }
+  .search-error { align-self: stretch; margin: 9px 2px 0; color: #df7b58; font-size: 12.5px; text-align: center; }
   .search-examples { max-width: min(640px, 90vw); margin-top: 20px; }
   .search-examples > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
   .search-examples button {
@@ -245,9 +284,27 @@ export const globalStyles = css`
   }
   .taste-map { display: block; width: 100%; height: 100%; user-select: none; }
   .map-base { fill: var(--card); }
-  .axis-line { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 5 5; }
-  .axis-label { fill: var(--sub); font-size: 18px; letter-spacing: .05em; }
-  .quadrant-label { font-size: 17px; letter-spacing: .06em; opacity: .75; }
+  .axis-line { fill: none; stroke: #514d45; stroke-width: 1.4; stroke-dasharray: 6 6; }
+  .axis-label {
+    fill: #d2cec5;
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: .04em;
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 8px;
+    stroke-linejoin: round;
+  }
+  .quadrant-label {
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    opacity: 1;
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 8px;
+    stroke-linejoin: round;
+  }
   .restaurant-point { cursor: pointer; opacity: .3; transition: opacity 150ms ease, r 150ms ease; }
   .restaurant-point.recommended { opacity: 1; }
   .restaurant-point:hover { opacity: 1; }
@@ -386,14 +443,17 @@ export const globalStyles = css`
     .landing-content { padding: 20px; }
     .landing-content h1 { font-size: 30px; }
     .landing-lede { font-size: 13px; }
+    .landing-search { width: 100%; }
+    .location-filter { grid-template-columns: 1fr; gap: 10px; padding: 14px; }
+    .location-divider { display: none; }
     .search-examples > div { flex-direction: column; }
     .search-examples button { width: 100%; }
     .map-query-header { padding: 16px 16px 0; }
     .map-query-pill, .map-query-form input { max-width: calc(100vw - 68px); }
     .map-query-chips { padding-left: 26px; }
     .map-layout { gap: 20px; padding: 18px 16px 36px; }
-    .axis-label { font-size: 22px; }
-    .quadrant-label { font-size: 20px; }
+    .axis-label { font-size: 28px; }
+    .quadrant-label { font-size: 26px; }
     .recommendation-rail { min-width: 0; }
     .detail-container { padding: 20px 18px 48px; }
     .detail-summary h1 { font-size: 30px; }
