@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { MapQueryHeader, RecommendationCard, TasteMap } from '../components/taste-map'
+import { MapQueryHeader, RecommendationCard, RestaurantSidebar, TasteMap } from '../components/taste-map'
 import { useTasteRecommendations } from '../hooks/useTasteRecommendations'
 import { searchSuggestions } from '../mocks/restaurants'
 import { useTasteStore } from '../store/useTasteStore'
@@ -16,7 +16,9 @@ export function TasteMapPage() {
   const recommendations = useTasteRecommendations(taste)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(query)
-  const openRestaurant = (restaurant: Restaurant) => navigate(`/restaurants/${restaurant.id}`)
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
+  const openRestaurant = (restaurant: Restaurant) => setSelectedRestaurant(restaurant)
+  const findSimilar = (restaurant: Restaurant) => { setTaste(restaurant.position); setSelectedRestaurant(null) }
   const saveQuery = (event: FormEvent) => { event.preventDefault(); if (!draft.trim()) return; setQuery(draft.trim()); setEditing(false) }
   const applySuggestion = (suggestion: string) => { setQuery(suggestion); setDraft(suggestion) }
   const tasteWords = `${taste[0] < 0 ? '조용함' : '활기참'} · ${taste[1] < 0 ? '혼자' : '여럿이'} · ${taste[0] < -0.2 ? '작은 공간' : '열린 자리'}`
@@ -39,9 +41,19 @@ export function TasteMapPage() {
         <div className="map-column">
           <TasteMap taste={taste} onTasteChange={setTaste} recommendations={recommendations} onOpenRestaurant={openRestaurant} />
         </div>
-        <aside className="recommendation-rail" aria-label="취향과 가까운 추천 식당">
-          <p className="taste-traits"><span />{tasteWords}</p>
-          <div className="recommendation-list">{recommendations.map((restaurant, index) => <RecommendationCard key={restaurant.id} restaurant={restaurant} order={index + 1} onClick={() => openRestaurant(restaurant)} />)}</div>
+        <aside className="recommendation-rail" aria-label={selectedRestaurant ? `${selectedRestaurant.name} 상세 정보` : '취향과 가까운 추천 식당'}>
+          {selectedRestaurant ? (
+            <RestaurantSidebar
+              restaurant={selectedRestaurant}
+              onBack={() => setSelectedRestaurant(null)}
+              onFindSimilar={() => findSimilar(selectedRestaurant)}
+            />
+          ) : (
+            <>
+              <p className="taste-traits"><span />{tasteWords}</p>
+              <div className="recommendation-list">{recommendations.map((restaurant, index) => <RecommendationCard key={restaurant.id} restaurant={restaurant} order={index + 1} onClick={() => openRestaurant(restaurant)} />)}</div>
+            </>
+          )}
         </aside>
       </section>
     </main>
