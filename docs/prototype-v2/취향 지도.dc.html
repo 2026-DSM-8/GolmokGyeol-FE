@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  a { color: #FF9F43; text-decoration: none; }
+  a:hover { color: #ffb066; }
+  @keyframes gk-fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes gk-pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+  .gk-anim { animation: gk-fadeup 420ms cubic-bezier(0.4,0,0.2,1); }
+  .gk-star { animation: gk-pulse 3s ease-in-out infinite; }
+  .gk-sb::-webkit-scrollbar { width: 8px; }
+  .gk-sb::-webkit-scrollbar-thumb { background: #292724; border-radius: 999px; }
+</style>
+</helmet>
+<div style="height: 100vh; width: 100%; display: flex; flex-direction: column; background: #0D0C0B; font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; color: #EDEAE4;">
+
+  <header style="flex: none; height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 20px; border-bottom: 1px solid #292724;">
+    <button onClick="{{ back }}" aria-label="뒤로" style="flex: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #292724; border-radius: 8px; color: #98938A; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733; color: #EDEAE4;" style-active="transform: scale(0.96);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+    <span style="flex: none; color: #98938A; font-size: 13px; font-weight: 400; letter-spacing: 0.14em;">{{ dongName }}</span>
+    <span style="flex: 1; min-width: 0; color: #EDEAE4; font-size: 15px; font-weight: 400; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">“{{ query }}”</span>
+    <button onClick="{{ back }}" style="flex: none; height: 32px; padding: 0 14px; background: transparent; border: 1px solid #292724; border-radius: 8px; color: #98938A; font-family: inherit; font-size: 13px; font-weight: 400; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733; color: #EDEAE4;" style-active="transform: scale(0.98);">수정</button>
+  </header>
+
+  <div style="flex: none; min-height: 48px; display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #292724; background: #161514;">
+    <p style="margin: 0; font-size: 15px; font-weight: 400; line-height: 1.5; letter-spacing: -0.01em; color: #98938A;">조용히 혼자 먹기 좋은 집 <span style="color: #EDEAE4;">23곳</span>을 찾았어요. 이 안에서도 갈려요 → <span style="color: #EDEAE4;">후딱 먹기 ↔ 오래 머물기</span></p>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex;">
+
+    <div ref="{{ mapRef }}" onPointerDown="{{ onCanvasDown }}" style="position: relative; flex: 1; min-width: 0; overflow: hidden; background: #0D0C0B; cursor: {{ canvasCursor }}; touch-action: none;">
+      {{ map }}
+
+      <sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; pointer-events: none;">
+          <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 500; color: #B8B3A9; letter-spacing: -0.01em;">← 저렴</span>
+          <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 500; color: #B8B3A9; letter-spacing: -0.01em;">비쌈 →</span>
+          <span style="position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 500; color: #B8B3A9; letter-spacing: -0.01em;">오래 머물기 ↑</span>
+          <span style="position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 500; color: #B8B3A9; letter-spacing: -0.01em;">↓ 후딱 먹기</span>
+
+          <span style="position: absolute; left: 24px; top: 24px; font-size: 13px; font-weight: 500; color: #A99BF7; letter-spacing: -0.01em;">느긋한 밥집</span>
+          <span style="position: absolute; right: 24px; top: 24px; font-size: 13px; font-weight: 500; color: #F5946E; letter-spacing: -0.01em;">카페 같은 곳</span>
+          <span style="position: absolute; left: 24px; bottom: 24px; font-size: 13px; font-weight: 500; color: #63D5AA; letter-spacing: -0.01em;">가성비 혼밥</span>
+          <span style="position: absolute; right: 24px; bottom: 24px; font-size: 13px; font-weight: 500; color: #F28FB4; letter-spacing: -0.01em;">퀄리티 혼밥</span>
+        </div>
+
+        <div style="position: absolute; left: 20px; bottom: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 12px; background: #161514; border: 1px solid #292724; border-radius: 8px; font-size: 12px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="#98938A"></circle></svg>후기 충분</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 2 L11 7 L7 12 L3 7 Z" fill="#0D0C0B" stroke="#98938A" stroke-width="1.5"></path></svg>후기 적음</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1 L9.4 6.6 L15 8 L9.4 9.4 L8 15 L6.6 9.4 L1 8 L6.6 6.6 Z" fill="none" stroke="#98938A" stroke-width="1" stroke-dasharray="1.5 1.5"></path></svg>기록 없음</span>
+        </div>
+
+        <div style="position: absolute; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+          <button onClick="{{ zoomIn }}" aria-label="확대" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #161514; border: 1px solid #292724; border-radius: 8px; color: #98938A; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733; color: #EDEAE4;" style-active="transform: scale(0.96);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          </button>
+          <button onClick="{{ zoomOut }}" aria-label="축소" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #161514; border: 1px solid #292724; border-radius: 8px; color: #98938A; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733; color: #EDEAE4;" style-active="transform: scale(0.96);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; background: #0D0C0B;">
+          <div style="min-height: 26px; display: flex; align-items: center;">
+            <span class="gk-anim" key="{{ loadLine }}" style="font-size: 15px; font-weight: 400; line-height: 1.6; letter-spacing: -0.01em; color: #98938A; text-align: center; white-space: pre-line;">{{ loadLine }}</span>
+          </div>
+          <div style="width: 160px; height: 1px; background: #292724; overflow: hidden;">
+            <div style="height: 100%; width: {{ loadProgress }}%; background: #FF9F43; transition: width 1200ms linear;"></div>
+          </div>
+        </div>
+      </sc-if>
+
+      {{ coach }}
+    </div>
+
+    <aside class="gk-sb" style="flex: none; width: 380px; border-left: 1px solid #292724; background: #0D0C0B; display: flex; flex-direction: column; overflow: hidden;">
+      <sc-if value="{{ selected }}" hint-placeholder-val="{{ false }}">
+        <div style="height: 100%; display: flex; flex-direction: column;">
+          <div class="gk-sb gk-anim" style="flex: 1; min-height: 0; overflow-y: auto; padding: 28px 24px;">
+
+            <button onClick="{{ clearSelection }}" style="display: flex; align-items: center; gap: 6px; margin-bottom: 24px; background: transparent; border: none; padding: 0; color: #625E58; font-family: inherit; font-size: 13px; font-weight: 400; cursor: pointer; transition: color 150ms;" style-hover="color: #98938A;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+              추천 3곳으로
+            </button>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: {{ detail.color }}; flex: none;"></span>
+              <h2 style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.4;">{{ detail.name }}</h2>
+            </div>
+            <div style="margin-top: 6px; font-size: 13px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">{{ detail.subline }}</div>
+
+            <sc-if value="{{ detail.isLow }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 16px; display: flex; gap: 10px; padding: 10px 12px; background: #1F1E1C; border: 1px solid #292724; border-radius: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98938A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                <div style="font-size: 12px; font-weight: 400; line-height: 1.5; color: #98938A; letter-spacing: 0.01em;">후기가 적어요. 취향 자리가 부정확할 수 있어요.</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ detail.isNone }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 16px; display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #1F1E1C; border: 1px solid #292724; border-radius: 8px;">
+                <svg width="18" height="18" viewBox="0 0 18 18" style="flex:none;"><path d="M9 1.5 L10.6 6.4 L15.5 6.4 L11.5 9.4 L13 14.3 L9 11.3 L5 14.3 L6.5 9.4 L2.5 6.4 L7.4 6.4 Z" fill="none" stroke="#98938A" stroke-width="1" stroke-dasharray="1.6 1.6"></path></svg>
+                <div style="font-size: 14px; font-weight: 400; line-height: 1.5; color: #EDEAE4; letter-spacing: -0.01em;">아직 아무도 기록하지 않은 집</div>
+              </div>
+            </sc-if>
+
+            <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #292724;">
+              <div style="font-size: 13px; font-weight: 400; color: #98938A; letter-spacing: -0.01em;">{{ detail.placeLead }}</div>
+              <div style="margin-top: 12px; background: #0D0C0B; border: 1px solid #292724; border-radius: 8px; overflow: hidden;">{{ detail.mini }}</div>
+              <div style="margin-top: 10px; font-size: 12px; font-weight: 400; color: {{ detail.color }}; letter-spacing: 0.01em;">{{ detail.quadLabel }}</div>
+              <sc-if value="{{ detail.isNone }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 12px; font-size: 12px; font-weight: 400; line-height: 1.6; color: #625E58; letter-spacing: 0.01em;">후기가 없어서, 업종과 위치로 추정한 자리예요. 실제와 다를 수 있어요.</div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ detail.hasMentions }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #292724;">
+                <div style="font-size: 13px; font-weight: 400; color: #98938A; margin-bottom: 16px; letter-spacing: -0.01em;">이런 말이 자주 나와요</div>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                  <sc-for list="{{ detail.mentions }}" as="m" hint-placeholder-count="3">
+                    <div>
+                      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+                        <span style="font-size: 15px; font-weight: 400; color: #EDEAE4; letter-spacing: -0.01em;">{{ m.text }}</span>
+                        <span style="font-size: 13px; font-weight: 400; color: #625E58;">{{ m.count }}</span>
+                      </div>
+                      <div style="margin-top: 8px; height: 4px; background: #1F1E1C; border-radius: 2px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ m.pct }}%; background: {{ detail.color }}; border-radius: 2px;"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ detail.hasSnippets }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #292724;">
+                <div style="font-size: 13px; font-weight: 400; color: #98938A; margin-bottom: 16px; letter-spacing: -0.01em;">이 문장들 때문에 여기 있어요</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <sc-for list="{{ detail.snippets }}" as="s" hint-placeholder-count="3">
+                    <div style="padding: 14px 16px; background: #1F1E1C; border-radius: 8px; border-left: 2px solid #FF9F43; font-size: 15px; font-weight: 400; line-height: 1.7; color: #EDEAE4; letter-spacing: -0.01em;">“{{ s }}”</div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: 12px; text-align: right; font-size: 12px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">네이버 블로그 후기</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ detail.isNone }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #292724;">
+                <div style="font-size: 13px; font-weight: 400; color: #98938A; margin-bottom: 16px; letter-spacing: -0.01em;">우리가 아는 건 이게 전부예요</div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <sc-for list="{{ detail.facts }}" as="f" hint-placeholder-count="3">
+                    <div style="display: flex; gap: 16px;">
+                      <span style="flex: none; width: 48px; font-size: 12px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">{{ f.k }}</span>
+                      <span style="font-size: 15px; font-weight: 400; color: #EDEAE4; letter-spacing: -0.01em;">{{ f.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: 24px; padding: 20px; background: #1F1E1C; border: 1px solid #7A4E1F; border-radius: 10px;">
+                  <div style="font-size: 14px; font-weight: 400; line-height: 1.7; color: #98938A; letter-spacing: -0.01em;">네이버 지도에서 검색하면 이 가게는 나오지 않아요.</div>
+                  <div style="margin-top: 12px; font-size: 15px; font-weight: 500; line-height: 1.6; color: #FF9F43; letter-spacing: -0.01em;">첫 번째 손님이 되어보실래요?</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #292724;">
+              <div style="font-size: 13px; font-weight: 400; color: #98938A; margin-bottom: 12px; letter-spacing: -0.01em;">위치</div>
+              <div style="height: 140px; position: relative; background: #0D0C0B; border: 1px solid #292724; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <div style="position:absolute; inset:0; background-image: linear-gradient(#161514 1px, transparent 1px), linear-gradient(90deg, #161514 1px, transparent 1px); background-size: 28px 28px; opacity: 0.6;"></div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF9F43" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div style="margin-top: 12px; font-size: 15px; font-weight: 400; color: #EDEAE4; letter-spacing: -0.01em;">{{ detail.address }}</div>
+              <div style="margin-top: 4px; font-size: 12px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">{{ detail.locDesc }}</div>
+            </div>
+
+          </div>
+
+          <div style="flex: none; display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #292724; background: #0D0C0B;">
+            <sc-if value="{{ detail.canSimilar }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ detail.similar }}" style="flex: 1; height: 44px; background: #161514; border: 1px solid #292724; border-radius: 8px; color: #EDEAE4; font-family: inherit; font-size: 14px; font-weight: 400; letter-spacing: -0.01em; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733;" style-active="transform: scale(0.98);">여기랑 비슷한 집</button>
+            </sc-if>
+            <button onClick="{{ detail.route }}" style="flex: 1; height: 44px; background: #161514; border: 1px solid #292724; border-radius: 8px; color: #EDEAE4; font-family: inherit; font-size: 14px; font-weight: 400; letter-spacing: -0.01em; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733;" style-active="transform: scale(0.98);">길찾기</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showRecs }}" hint-placeholder-val="{{ true }}">
+        <div class="gk-sb gk-anim" style="height: 100%; overflow-y: auto; padding: 32px 28px;">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.4;">이 자리에 가까운 곳</h2>
+          <p style="margin: 8px 0 0; font-size: 13px; font-weight: 400; line-height: 1.5; color: #625E58; letter-spacing: -0.01em;">점을 살살 밀어보세요. 순서가 바뀌어요.</p>
+
+          <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+            <sc-for list="{{ recs }}" as="r" hint-placeholder-count="3">
+              <button onClick="{{ r.select }}" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #161514; border: 1px solid #292724; border-radius: 12px; cursor: pointer; text-align: left; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733;" style-active="transform: scale(0.99);">
+                <span style="flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid {{ r.color }}; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ r.color }};">{{ r.rank }}</span>
+                <span style="flex: 1; min-width: 0;">
+                  <span style="display: block; font-size: 15px; font-weight: 500; color: #EDEAE4; letter-spacing: -0.01em;">{{ r.name }}</span>
+                  <span style="display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: #625E58; letter-spacing: 0.01em;">{{ r.subline }}</span>
+                </span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#625E58" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #292724; font-size: 12px; font-weight: 400; line-height: 1.6; color: #625E58; letter-spacing: 0.01em;">별점도 랭킹도 없어요. 당신 자리에 가까운 순서일 뿐이에요.</div>
+        </div>
+      </sc-if>
+    </aside>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    phase: "loading", loadStep: 0, loadProgress: 0,
+    w: 960, h: 560, zoom: 1, panX: 0, panY: 0,
+    ux: 0, uy: 0, dragging: null, entered: false,
+    selectedId: null, coach: 0,
+  };
+
+  query = "혼자 조용히 밥 먹기 좋은 곳";
+
+  colorFor(x, y) {
+    if (y >= 0) return x < 0 ? "#A99BF7" : "#F5946E";
+    return x < 0 ? "#63D5AA" : "#F28FB4";
+  }
+
+  quadName(x, y) {
+    if (y >= 0) return x < 0 ? "느긋한 밥집" : "카페 같은 곳";
+    return x < 0 ? "가성비 혼밥" : "퀄리티 혼밥";
+  }
+
+  buildMini(sel) {
+    const h2 = React.createElement;
+    const W = 280, H = 160, pad = 20;
+    const mx = (x) => pad + ((x + 1) / 2) * (W - 2 * pad);
+    const my = (y) => pad + (1 - (y + 1) / 2) * (H - 2 * pad);
+    const kids = [];
+    const washes = [["#A99BF7",0,0],["#F5946E",W/2,0],["#63D5AA",0,H/2],["#F28FB4",W/2,H/2]];
+    washes.forEach(([c,x,y],i) => kids.push(h2("rect",{key:"w"+i,x,y,width:W/2,height:H/2,fill:c,opacity:0.05})));
+    kids.push(h2("line",{key:"lx",x1:0,y1:H/2,x2:W,y2:H/2,stroke:"#292724",strokeWidth:1,strokeDasharray:"2 4"}));
+    kids.push(h2("line",{key:"ly",x1:W/2,y1:0,x2:W/2,y2:H,stroke:"#292724",strokeWidth:1,strokeDasharray:"2 4"}));
+    this.data.forEach((r) => {
+      if (r.id === sel.id) return;
+      kids.push(h2("circle",{key:"d"+r.id,cx:mx(r.x),cy:my(r.y),r:2.5,fill:this.colorFor(r.x,r.y),opacity:0.28}));
+    });
+    const cx = mx(sel.x), cy = my(sel.y), color = this.colorFor(sel.x, sel.y);
+    if (sel.conf === "none") {
+      kids.push(h2("circle",{key:"h",cx,cy,r:13,fill:"none",stroke:color,strokeWidth:1,strokeDasharray:"2 3"}));
+      kids.push(h2("path",{key:"s",transform:`translate(${cx},${cy})`,d:"M0,-6 L1.7,-1.7 L6,0 L1.7,1.7 L0,6 L-1.7,1.7 L-6,0 L-1.7,-1.7 Z",fill:"none",stroke:color,strokeWidth:1,strokeDasharray:"1.2 1.2"}));
+    } else {
+      kids.push(h2("circle",{key:"ring",cx,cy,r:12,fill:"none",stroke:color,strokeWidth:1,opacity:0.35}));
+      if (sel.conf === "low") kids.push(h2("path",{key:"s",transform:`translate(${cx},${cy})`,d:"M0,-6 L6,0 L0,6 L-6,0 Z",fill:"#0D0C0B",stroke:color,strokeWidth:1.5}));
+      else kids.push(h2("circle",{key:"s",cx,cy,r:5,fill:color}));
+    }
+    return h2("svg",{viewBox:`0 0 ${W} ${H}`,width:"100%",height:160,style:{display:"block"}}, kids);
+  }
+
+  data = [
+    { id:1, name:"은행나무 국숫집", cat:"국수", rv:34, conf:"high", x:-0.5, y:0.35, addr:"은행동 12-4", loc:"은행나무 사거리에서 골목 안쪽", mentions:[{text:"1인석",count:12},{text:"조용함",count:9},{text:"잔치국수",count:7}], snip:["창가 1인석에서 국수 한 그릇 비우고 조용히 나왔어요","점심 피크 지나 가면 손님이 거의 없어 편해요","리필 국물을 말없이 채워주셔서 눈치 안 봤어요"] },
+    { id:2, name:"혼자의 식탁", cat:"백반", rv:28, conf:"high", x:0.45, y:0.55, addr:"은행동 33-1", loc:"우체국 뒤편 2층", mentions:[{text:"칸막이석",count:11},{text:"정갈함",count:8}], snip:["혼밥 전용 칸막이 자리가 따로 있어 눈치 볼 일이 없었어요","반찬이 깔끔해서 천천히 오래 앉아있게 돼요","사장님이 말 안 거시고 조용히 둬주셔서 좋았어요"] },
+    { id:3, name:"골목 안 덮밥", cat:"덮밥", rv:41, conf:"high", x:-0.15, y:-0.4, addr:"은행동 8-9", loc:"공영주차장 옆 골목", mentions:[{text:"빠른 회전",count:14},{text:"혼밥",count:10}], snip:["주문하면 5분 안에 나와서 후딱 먹고 일어나기 좋아요","바 자리라 혼자 와도 전혀 어색하지 않았어요","점심시간 딱 맞춰 먹기 좋은 속도예요"] },
+    { id:4, name:"조용한 부엌", cat:"가정식", rv:22, conf:"high", x:0.15, y:0.2, addr:"은행동 21-7", loc:"이면도로 안쪽", mentions:[{text:"조용함",count:9},{text:"1인 상차림",count:6}], snip:["1인 상차림을 따로 내주셔서 혼자여도 대접받는 기분이었어요","말소리가 크지 않아 책 읽으며 먹기 좋았어요","반찬을 남기면 다음엔 적게 담아 주셨어요"] },
+    { id:5, name:"낮 우동집", cat:"우동", rv:19, conf:"high", x:-0.35, y:-0.15, addr:"은행동 5-2", loc:"버스정류장 앞", mentions:[{text:"혼밥",count:8},{text:"저렴",count:5}], snip:["카운터 자리에서 우동 한 그릇 후딱 먹기 딱 좋아요","혼자 온 손님이 대부분이라 마음이 편했어요"] },
+    { id:6, name:"열두시 김밥", cat:"분식", rv:26, conf:"high", x:-0.6, y:-0.55, addr:"은행동 3-3", loc:"시장 초입", mentions:[{text:"가성비",count:13},{text:"빠름",count:9}], snip:["혼자 앉는 좁은 바가 있어서 후딱 한 끼 때우기 좋아요","가격이 착해서 부담 없이 자주 가요"] },
+    { id:7, name:"서점옆 파스타", cat:"파스타", rv:17, conf:"high", x:0.6, y:0.4, addr:"은행동 40-1", loc:"헌책방 옆 건물", mentions:[{text:"1인 세트",count:7},{text:"조용함",count:5}], snip:["1인 파스타 세트가 있어 혼자 와도 눈치 안 보여요","조명이 낮아 오래 앉아 있어도 편안했어요"] },
+    { id:8, name:"온기 죽집", cat:"죽", rv:31, conf:"high", x:0.05, y:0.6, addr:"은행동 17-5", loc:"약국 위층", mentions:[{text:"따뜻함",count:12},{text:"1인석",count:8}], snip:["몸이 안 좋을 때 혼자 가서 죽 한 그릇 천천히 먹었어요","자리 간격이 넓어 오래 머물러도 부담 없어요"] },
+    { id:9, name:"미음 백반", cat:"백반", rv:24, conf:"high", x:-0.25, y:0.5, addr:"은행동 11-2", loc:"주민센터 맞은편", mentions:[{text:"집밥",count:10},{text:"조용함",count:6}], snip:["혼자 가도 집밥 한상 그대로 차려주셔서 든든했어요","오후 늦게 가면 나 혼자라 조용히 오래 있었어요"] },
+    { id:10, name:"한 그릇 돈까스", cat:"돈까스", rv:38, conf:"high", x:0.3, y:-0.3, addr:"은행동 28-8", loc:"학원가 1층", mentions:[{text:"빠름",count:15},{text:"혼밥",count:9}], snip:["혼자용 카운터가 길게 있어 바로 앉아 후딱 먹었어요","주문부터 나오기까지 빨라서 점심시간 짧을 때 좋아요"] },
+    { id:11, name:"담담 카레", cat:"카레", rv:20, conf:"high", x:0.25, y:0.1, addr:"은행동 24-3", loc:"카페거리 안쪽", mentions:[{text:"1인석",count:8},{text:"조용함",count:5}], snip:["창가 1인석에서 카레 먹으며 멍때리기 좋았어요","혼자 온 손님이 많아 하나도 어색하지 않았어요"] },
+    { id:12, name:"늦은 점심 국밥", cat:"국밥", rv:29, conf:"high", x:-0.45, y:-0.35, addr:"은행동 6-1", loc:"철물점 골목", mentions:[{text:"가성비",count:11},{text:"빠름",count:7}], snip:["혼자 가면 구석 자리로 안내해주셔서 후딱 먹고 나왔어요","국밥 하나에 이 가격이면 마음이 편해요"] },
+    { id:13, name:"창가자리 브런치", cat:"브런치", rv:16, conf:"high", x:0.5, y:0.25, addr:"은행동 36-2", loc:"공원 옆", mentions:[{text:"창가석",count:6},{text:"조용함",count:5}], snip:["창가 1인석에서 브런치 먹으며 오래 앉아있었어요","오전엔 손님이 적어 조용히 시간 보내기 좋아요"] },
+    { id:14, name:"소반 한상", cat:"한정식", rv:21, conf:"high", x:0.55, y:0.6, addr:"은행동 44-4", loc:"오르막 끝 한옥", mentions:[{text:"1인 정식",count:7},{text:"정갈함",count:6}], snip:["혼자용 1인 정식을 정갈하게 내주셔서 특별한 날 같았어요","좌석이 나뉘어 있어 오래 머물러도 편했어요"] },
+    { id:15, name:"혼밥연구소", cat:"덮밥", rv:33, conf:"high", x:-0.05, y:-0.15, addr:"은행동 15-6", loc:"은행동 중앙 사거리", mentions:[{text:"혼밥 특화",count:16},{text:"1인석",count:11},{text:"빠름",count:6}], snip:["이름 그대로 전부 1인석이라 혼밥이 기본값이에요","벨로 주문해서 직원과 말 섞을 일이 없어 편했어요","혼자 먹기 딱 좋은 속도와 양이었어요"] },
+    { id:16, name:"고요 라멘", cat:"라멘", rv:27, conf:"high", x:0.35, y:-0.5, addr:"은행동 30-7", loc:"뒷골목 지하", mentions:[{text:"바 자리",count:10},{text:"혼밥",count:8}], snip:["일본식 바 자리라 혼자 후딱 먹기 좋았어요","앞만 보고 먹는 구조라 혼밥에 최적이에요"] },
+    { id:17, name:"반달 분식", cat:"분식", rv:4, conf:"low", x:-0.7, y:0.1, addr:"은행동 2-8", loc:"시장 안쪽", mentions:[{text:"저렴",count:2}], snip:["혼자 앉는 자리가 몇 개 있고 조용한 편이었어요"] },
+    { id:18, name:"잔잔 커피밥", cat:"카페밥", rv:3, conf:"low", x:0.2, y:0.45, addr:"은행동 25-1", loc:"골목 2층", mentions:[{text:"조용함",count:2}], snip:["카페처럼 오래 앉아 밥도 먹을 수 있어 좋았어요"] },
+    { id:19, name:"무명 백반", cat:"백반", rv:2, conf:"low", x:-0.2, y:-0.6, addr:"은행동 9-4", loc:"주차장 뒤", mentions:[{text:"빠름",count:1}], snip:["혼자 가서 백반 후딱 먹고 나오기 괜찮았어요"] },
+    { id:20, name:"골목 끝 우동", cat:"우동", rv:5, conf:"low", x:0.65, y:-0.2, addr:"은행동 41-9", loc:"막다른 골목", mentions:[{text:"1인석",count:3}], snip:["구석 1인석이 있어 혼자여도 편했어요"] },
+    { id:21, name:"저녁뜸 죽", cat:"죽", rv:2, conf:"low", x:0.1, y:0.35, addr:"은행동 19-2", loc:"병원 앞", mentions:[{text:"조용함",count:1}], snip:["저녁 늦게 혼자 가면 조용히 죽 먹기 좋아요"] },
+    { id:22, name:"간판 없는 밥집", cat:"미확인", rv:0, conf:"none", x:-0.4, y:0.65, addr:"은행동 1-1 추정", loc:"골목 안, 위치가 확실치 않아요", mentions:[], snip:[] },
+    { id:23, name:"이름 모를 국숫집", cat:"미확인", rv:0, conf:"none", x:0.45, y:-0.6, addr:"은행동 38 추정", loc:"지도상 위치만 있어요", mentions:[], snip:[] },
+  ];
+
+  componentDidMount() {
+    this._t = [];
+    this._t.push(setTimeout(() => this.setState({ loadStep: 1 }), 500));
+    this._t.push(setTimeout(() => this.setState({ loadStep: 2 }), 900));
+    this._t.push(setTimeout(() => {
+      this.setState({ phase: "map" });
+      requestAnimationFrame(() => this.setState({ entered: true }));
+      let done = false;
+      try { done = localStorage.getItem("gk_coach_done") === "1"; } catch (e) {}
+      if (!done) this._t.push(setTimeout(() => this.setState({ coach: 1 }), 700));
+    }, 1200));
+    requestAnimationFrame(() => this.setState({ loadProgress: 100 }));
+  }
+  componentWillUnmount() { (this._t || []).forEach(clearTimeout); this.detach(); }
+
+  setMapRef = (el) => {
+    if (!el || el === this._el) return;
+    this._el = el;
+    const measure = () => this.setState({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    if (window.ResizeObserver) { this._ro = new ResizeObserver(measure); this._ro.observe(el); }
+    el.addEventListener("wheel", this.onWheel, { passive: false });
+  };
+
+  onWheel = (e) => {
+    e.preventDefault();
+    const z = Math.min(4, Math.max(0.6, this.state.zoom * (1 - e.deltaY * 0.0015)));
+    this.setState({ zoom: z });
+  };
+
+  R() { return 0.4 * Math.min(this.state.w, this.state.h); }
+  toScreen(x, y) {
+    const { w, h, zoom, panX, panY } = this.state;
+    return [w / 2 + x * this.R() * zoom + panX, h / 2 - y * this.R() * zoom + panY];
+  }
+
+  detach() {
+    document.removeEventListener("pointermove", this.onMove);
+    document.removeEventListener("pointerup", this.onUp);
+  }
+  attach() {
+    document.addEventListener("pointermove", this.onMove);
+    document.addEventListener("pointerup", this.onUp);
+  }
+  onCanvasDown = (e) => { if (this.state.coach) return; this.setState({ dragging: "pan" }); this.attach(); };
+  startUser = (e) => { e.stopPropagation(); if (this.state.coach) return; this.setState({ dragging: "user" }); this.attach(); };
+  onMove = (e) => {
+    const d = this.state.dragging;
+    if (d === "pan") {
+      this.setState((s) => ({ panX: s.panX + e.movementX, panY: s.panY + e.movementY }));
+    } else if (d === "user") {
+      const k = this.R() * this.state.zoom || 1;
+      this.setState((s) => ({
+        ux: Math.max(-1.15, Math.min(1.15, s.ux + e.movementX / k)),
+        uy: Math.max(-1.15, Math.min(1.15, s.uy - e.movementY / k)),
+      }));
+    }
+  };
+  onUp = () => { this.setState({ dragging: null }); this.detach(); };
+
+  zoomIn = () => this.setState((s) => ({ zoom: Math.min(4, s.zoom * 1.25) }));
+  zoomOut = () => this.setState((s) => ({ zoom: Math.max(0.6, s.zoom / 1.25) }));
+
+  recIds() {
+    const { ux, uy } = this.state;
+    return this.data.filter((r) => r.conf !== "none")
+      .map((r) => ({ r, d: (r.x - ux) ** 2 + (r.y - uy) ** 2 }))
+      .sort((a, b) => a.d - b.d).slice(0, 3).map((o) => o.r.id);
+  }
+
+  finishCoach = () => {
+    try { localStorage.setItem("gk_coach_done", "1"); } catch (e) {}
+    this.setState({ coach: 0 });
+  };
+  coachNext = () => {
+    const c = this.state.coach;
+    if (c < 2) { this.setState({ coach: c + 1 }); return; }
+    // step 3: point moves itself
+    this.setState({ coach: 3 });
+    const start = this.state.ux, target = 0.5, t0 = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / 1100);
+      const e = 1 - Math.pow(1 - p, 3);
+      this.setState({ ux: start + (target - start) * e });
+      if (p < 1) requestAnimationFrame(tick);
+      else this._t.push(setTimeout(this.finishCoach, 900));
+    };
+    requestAnimationFrame(tick);
+  };
+
+  buildMap() {
+    if (this.state.phase !== "map") return null;
+    const { w, h, zoom, ux, uy, dragging, entered, selectedId } = this.state;
+    const R = this.R();
+    const recSet = new Set(this.recIds());
+    const h2 = React.createElement;
+    const kids = [];
+
+    // quadrant washes
+    const washes = [["#A99BF7",0,0],["#F5946E",w/2,0],["#63D5AA",0,h/2],["#F28FB4",w/2,h/2]];
+    washes.forEach(([c,x,y],i) => kids.push(h2("rect",{key:"wash"+i,x,y,width:w/2,height:h/2,fill:c,opacity:0.035})));
+
+    // axes
+    kids.push(h2("line",{key:"ax",x1:0,y1:h/2,x2:w,y2:h/2,stroke:"#292724",strokeWidth:1,strokeDasharray:"2 4"}));
+    kids.push(h2("line",{key:"ay",x1:w/2,y1:0,x2:w/2,y2:h,stroke:"#292724",strokeWidth:1,strokeDasharray:"2 4"}));
+
+    // nodes
+    this.data.forEach((r, i) => {
+      const [sx, sy] = this.toScreen(r.x, r.y);
+      const isRec = recSet.has(r.id);
+      const isSel = selectedId === r.id;
+      const color = this.colorFor(r.x, r.y);
+      const dim = (selectedId != null && !isSel) || (!isRec && selectedId == null);
+      const op = isRec || isSel ? 1 : dim ? 0.45 : 1;
+
+      // entrance target: fly from outside along own direction
+      const mag = Math.hypot(r.x, r.y) || 1;
+      const ox = w / 2 + (r.x / mag) * (Math.max(w, h) * 0.9);
+      const oy = h / 2 - (r.y / mag) * (Math.max(w, h) * 0.9);
+      const tx = entered ? sx : ox, ty = entered ? sy : oy;
+
+      let magnet = 1;
+      if (dragging === "user") {
+        const dd = Math.hypot(r.x - ux, r.y - uy);
+        magnet = 1 + Math.max(0, 0.35 * (1 - dd / 0.5));
+      }
+
+      const shapeKids = [];
+      if (isRec) shapeKids.push(h2("circle",{key:"ring",r:15,fill:"none",stroke:color,strokeWidth:1,opacity:0.3}));
+      if (r.conf === "high") {
+        shapeKids.push(h2("circle",{key:"s",r:isRec?9:6,fill:color}));
+      } else if (r.conf === "low") {
+        const s = isRec ? 9 : 7;
+        shapeKids.push(h2("path",{key:"s",d:`M0,${-s} L${s},0 L0,${s} L${-s},0 Z`,fill:"#0D0C0B",stroke:color,strokeWidth:1.5}));
+      } else {
+        shapeKids.push(h2("path",{key:"s",className:"gk-star",d:"M0,-9 L2.6,-2.6 L9,0 L2.6,2.6 L0,9 L-2.6,2.6 L-9,0 L-2.6,-2.6 Z",fill:"none",stroke:color,strokeWidth:1,strokeDasharray:"1.6 1.6"}));
+      }
+
+      const labels = [];
+      const showName = isRec || zoom >= 1.35;
+      const yOff = (isRec ? 9 : r.conf === "none" ? 9 : 7) + 15;
+      if (showName) labels.push(h2("text",{key:"n",x:0,y:yOff,textAnchor:"middle",fill:"#EDEAE4",fontSize:12,fontWeight:400,style:{letterSpacing:"-0.01em"}}, r.name));
+      if (zoom >= 2.3) labels.push(h2("text",{key:"f",x:0,y:yOff+16,textAnchor:"middle",fill:"#625E58",fontSize:11,fontWeight:400}, r.cat));
+
+      kids.push(h2("g",{
+        key:"node"+r.id,
+        transform:`translate(${tx},${ty})`,
+        style:{ opacity: entered ? op : 0, cursor:"pointer", transition: dragging ? "none" : `transform 520ms cubic-bezier(0.4,0,0.2,1) ${i*20}ms, opacity 420ms ${i*20}ms` },
+        onPointerDown:(e)=>{ e.stopPropagation(); },
+        onClick:(e)=>{ e.stopPropagation(); this.setState({ selectedId: r.id }); },
+      }, [
+        h2("g",{key:"sh",transform:`scale(${magnet})`,style:{transition:dragging?"none":"transform 200ms"}}, shapeKids),
+        ...labels,
+      ]));
+    });
+
+    // user point
+    const [uxS, uyS] = this.toScreen(ux, uy);
+    const budget = ux < -0.15 ? "저렴" : ux > 0.15 ? "좀 비쌈" : "중간 가격";
+    const pace = uy > 0.15 ? "오래 머물기" : uy < -0.15 ? "후딱 먹기" : "적당히";
+    const bubble = `${budget} · ${pace}`;
+    const bw = bubble.length * 8 + 24;
+    kids.push(h2("g",{
+      key:"user",
+      transform:`translate(${uxS},${uyS})`,
+      style:{ cursor: dragging === "user" ? "grabbing" : "grab", transition: dragging ? "none" : "transform 200ms cubic-bezier(0.4,0,0.2,1)" },
+      onPointerDown:this.startUser,
+    }, [
+      h2("circle",{key:"halo",r:20,fill:"#FF9F43",opacity:0.15}),
+      h2("circle",{key:"dot",r:8,fill:"#FF9F43"}),
+      h2("circle",{key:"hit",r:14,fill:"transparent"}),
+      h2("g",{key:"bub",transform:"translate(0,34)"},[
+        h2("rect",{key:"r",x:-bw/2,y:-13,width:bw,height:26,rx:8,fill:"#1F1E1C",stroke:"#3A3733",strokeWidth:1}),
+        h2("text",{key:"t",x:0,y:4,textAnchor:"middle",fill:"#EDEAE4",fontSize:12,fontWeight:400,style:{letterSpacing:"-0.01em"}}, bubble),
+      ]),
+    ]));
+
+    return h2("svg",{width:w,height:h,style:{position:"absolute",inset:0,display:"block"}}, kids);
+  }
+
+  buildCoach() {
+    const c = this.state.coach;
+    if (!c) return null;
+    const { w, h } = this.state;
+    const [uxS, uyS] = this.toScreen(this.state.ux, this.state.uy);
+    const h2 = React.createElement;
+    const holeR = c === 2 ? 120 : 46;
+    const caps = { 1: "이게 당신이에요", 2: "가까울수록 취향에 맞아요", 3: "점을 살살 밀어보세요" };
+    const cap = caps[c];
+    const capTop = uyS + holeR + 20 > h - 80 ? uyS - holeR - 64 : uyS + holeR + 20;
+    const els = [
+      h2("svg",{key:"mask",width:w,height:h,style:{position:"absolute",inset:0}},[
+        h2("defs",{key:"d"},[
+          h2("mask",{key:"m",id:"gkhole"},[
+            h2("rect",{key:"a",x:0,y:0,width:w,height:h,fill:"white"}),
+            h2("circle",{key:"b",cx:uxS,cy:uyS,r:holeR,fill:"black"}),
+          ]),
+        ]),
+        h2("rect",{key:"dim",x:0,y:0,width:w,height:h,fill:"#0D0C0B",opacity:0.7,mask:"url(#gkhole)"}),
+        h2("circle",{key:"ring",cx:uxS,cy:uyS,r:holeR,fill:"none",stroke:"#FF9F43",strokeWidth:1,opacity:0.6}),
+      ]),
+      h2("div",{key:"cap",style:{position:"absolute",left:Math.max(24,Math.min(w-260,uxS-120)),top:capTop,width:240,textAlign:"center"}},[
+        h2("div",{key:"t",style:{fontSize:20,fontWeight:500,letterSpacing:"-0.01em",color:"#EDEAE4",lineHeight:1.4}}, cap),
+        c < 3 ? h2("button",{key:"n",onClick:this.coachNext,style:{marginTop:20,height:40,padding:"0 20px",background:"#FF9F43",border:"none",borderRadius:8,color:"#0D0C0B",fontFamily:"inherit",fontSize:14,fontWeight:500,cursor:"pointer"}}, c===2?"밀어볼게요":"다음") : null,
+      ]),
+      c < 3 ? h2("button",{key:"skip",onClick:this.finishCoach,style:{position:"absolute",right:20,top:20,background:"transparent",border:"none",color:"#98938A",fontFamily:"inherit",fontSize:13,fontWeight:400,cursor:"pointer"}}, "건너뛰기") : null,
+    ];
+    return h2("div",{style:{position:"absolute",inset:0,zIndex:20}}, els);
+  }
+
+  renderVals() {
+    const lines = ["조용한 자리를 찾고 계시는군요","은행동에서 23곳을 찾았어요","이 안에서도 갈리네요 —\n후딱 먹기 ↔ 오래 머물기"];
+    const sel = this.data.find((r) => r.id === this.state.selectedId) || null;
+    let detail = null;
+    if (sel) {
+      const color = this.colorFor(sel.x, sel.y);
+      const isNone = sel.conf === "none", isLow = sel.conf === "low";
+      const qn = this.quadName(sel.x, sel.y);
+      const maxC = Math.max(1, ...sel.mentions.map((m) => m.count));
+      detail = {
+        name: sel.name, color, isNone, isLow,
+        subline: isNone ? `${sel.cat} · 후기 없음` : `${sel.cat} · 후기 ${sel.rv}건`,
+        mini: this.buildMini(sel),
+        placeLead: isNone ? "이 골목에선 여기쯤일 거예요" : "이 골목에선 여기쯤이에요",
+        quadLabel: isNone ? `‘${qn}’ 근처 (추정)` : `‘${qn}’ 자리`,
+        hasMentions: !isNone && sel.mentions.length > 0,
+        mentions: sel.mentions.map((m) => ({ text: m.text, count: m.count, pct: Math.round((m.count / maxC) * 100) })),
+        hasSnippets: sel.snip.length > 0, snippets: sel.snip,
+        facts: isNone ? [{ k: "업종", v: sel.cat }, { k: "위치", v: sel.loc }, { k: "규모", v: "소규모" }] : [],
+        address: sel.addr, locDesc: sel.loc,
+        canSimilar: !isNone,
+        similar: () => this.setState({ ux: sel.x, uy: sel.y, selectedId: null }),
+        route: () => {},
+      };
+    }
+    const recs = this.recIds().map((id, i) => {
+      const r = this.data.find((d) => d.id === id);
+      return { name: r.name, subline: `${r.cat} · 후기 ${r.rv}건`, rank: i + 1,
+        color: this.colorFor(r.x, r.y), select: () => this.setState({ selectedId: id }) };
+    });
+    const drag = this.state.dragging;
+    return {
+      query: this.props.query || this.query,
+      dongName: this.props.dongName || "은행동",
+      isMap: this.state.phase === "map",
+      isLoading: this.state.phase === "loading",
+      loadLine: lines[this.state.loadStep],
+      loadProgress: this.state.loadProgress,
+      map: this.buildMap(),
+      coach: this.buildCoach(),
+      mapRef: this.setMapRef,
+      onCanvasDown: this.onCanvasDown,
+      canvasCursor: drag === "pan" ? "grabbing" : "default",
+      zoomIn: this.zoomIn, zoomOut: this.zoomOut,
+      back: this.props.onBack || (() => {}),
+      selected: !!sel, showRecs: !sel, detail, recs,
+      clearSelection: () => this.setState({ selectedId: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

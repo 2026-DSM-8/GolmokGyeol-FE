@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  a { color: #FF9F43; text-decoration: none; }
+  a:hover { color: #ffb066; }
+  @keyframes gk-fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes gk-float {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(14px, -18px); }
+    50%  { transform: translate(-10px, 12px); }
+    75%  { transform: translate(8px, 16px); }
+    100% { transform: translate(0, 0); }
+  }
+  .gk-anim { opacity: 0; animation: gk-fadeup 460ms cubic-bezier(0.4,0,0.2,1) forwards; }
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; width: 100%; background: #0D0C0B; font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; overflow: hidden; display: flex; align-items: flex-start; justify-content: center;">
+
+  <div style="position: absolute; inset: 0; pointer-events: none; z-index: 0;">{{ dots }}</div>
+
+  <div style="position: relative; z-index: 1; width: 100%; max-width: 560px; padding: 96px 24px; display: flex; flex-direction: column;">
+
+    <div class="gk-anim" style="animation-delay: 0ms; text-align: center; color: #625E58; font-size: 12px; font-weight: 400; letter-spacing: 0.18em; line-height: 1.4;">골목결</div>
+
+    <h1 class="gk-anim" style="animation-delay: 80ms; margin: 48px 0 0; text-align: center; color: #EDEAE4; font-size: 32px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.3;">어느 동네를 볼까요?</h1>
+
+    <p class="gk-anim" style="animation-delay: 160ms; margin: 12px 0 0; text-align: center; color: #98938A; font-size: 15px; font-weight: 400; line-height: 1.7; letter-spacing: -0.01em;">그 안에 있는 식당들만 살펴볼게요.</p>
+
+    <div class="gk-anim" style="animation-delay: 240ms; margin-top: 48px;">
+      <div style="display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 20px; background: #161514; border: 1px solid {{ inputBorder }}; border-radius: 999px; transition: border-color 150ms cubic-bezier(0.4,0,0.2,1);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#625E58" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input value="{{ query }}" onChange="{{ onInput }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" placeholder="동 이름을 입력하세요" style="flex: 1; height: 100%; background: transparent; border: none; outline: none; color: #EDEAE4; font-family: inherit; font-size: 15px; font-weight: 400; letter-spacing: -0.01em;" />
+      </div>
+    </div>
+
+    <div class="gk-anim" style="animation-delay: 320ms; margin-top: 24px;">
+      <div style="color: #98938A; font-size: 13px; font-weight: 400; line-height: 1.5;">자주 찾는 곳</div>
+
+      <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <sc-for list="{{ dongs }}" as="d" hint-placeholder-count="6">
+          <button onClick="{{ d.select }}" style="{{ d.style }}" style-hover="border-color: #3A3733; background: #1F1E1C; transform: translateY(-1px);" style-active="transform: scale(0.98);">
+            <span style="{{ d.nameStyle }}">{{ d.name }}</span>
+            <span style="color: #625E58; font-size: 12px; font-weight: 400; letter-spacing: 0.01em;">{{ d.count }}곳</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top: 16px; text-align: center; color: #625E58; font-size: 13px; font-weight: 400; line-height: 1.5;">그 이름의 동네는 아직 없어요.</div>
+      </sc-if>
+    </div>
+
+    <div class="gk-anim" style="animation-delay: 520ms; margin-top: 32px;">
+      <button onClick="{{ nearby }}" style="width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; border: 1px solid #292724; border-radius: 8px; color: #98938A; font-family: inherit; font-size: 15px; font-weight: 400; letter-spacing: -0.01em; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1);" style-hover="background: #1F1E1C; border-color: #3A3733; color: #EDEAE4;" style-active="transform: scale(0.98);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        내 주변으로 찾기
+      </button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { query: "", selected: null, focused: false };
+
+  componentDidMount() {
+    const colors = ["#A99BF7", "#F5946E", "#63D5AA", "#F28FB4"];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    this._dots = Array.from({ length: 60 }, (_, i) => ({
+      key: i,
+      left: rnd(-4, 104),
+      top: rnd(-4, 104),
+      size: rnd(6, 16),
+      color: colors[Math.floor(Math.random() * 4)],
+      dur: rnd(16, 26),
+      delay: rnd(-20, 0),
+    }));
+    this.forceUpdate();
+  }
+
+  renderVals() {
+    const q = this.state.query.trim();
+    const all = [
+      { name: "은행동", count: 187 },
+      { name: "궁동", count: 142 },
+      { name: "둔산동", count: 231 },
+      { name: "유성온천", count: 96 },
+      { name: "봉명동", count: 118 },
+      { name: "대흥동", count: 74 },
+    ];
+    const filtered = q ? all.filter((d) => d.name.includes(q)) : all;
+
+    const dongs = filtered.map((d) => {
+      const isSel = this.state.selected === d.name;
+      return {
+        name: d.name,
+        count: d.count,
+        select: () => {
+          this.setState({ selected: d.name });
+          if (this.props.onPick) setTimeout(() => this.props.onPick({ name: d.name, count: d.count }), 220);
+        },
+        style: {
+          height: "72px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          gap: "4px",
+          padding: "0 16px",
+          background: "#161514",
+          border: isSel ? "1px solid #FF9F43" : "1px solid #292724",
+          borderRadius: "12px",
+          cursor: "pointer",
+          textAlign: "left",
+          fontFamily: "inherit",
+          transition: "all 150ms cubic-bezier(0.4,0,0.2,1)",
+        },
+        nameStyle: {
+          color: isSel ? "#FF9F43" : "#EDEAE4",
+          fontSize: "15px",
+          fontWeight: 500,
+          letterSpacing: "-0.01em",
+          lineHeight: 1.3,
+        },
+      };
+    });
+
+    const dots = (this._dots || []).map((d) =>
+      React.createElement("div", {
+        key: d.key,
+        style: {
+          position: "absolute",
+          left: d.left + "%",
+          top: d.top + "%",
+          width: d.size + "px",
+          height: d.size + "px",
+          borderRadius: "999px",
+          background: d.color,
+          opacity: 0.12,
+          filter: "blur(12px)",
+          animation: `gk-float ${d.dur}s ease-in-out ${d.delay}s infinite`,
+        },
+      })
+    );
+
+    return {
+      query: this.state.query,
+      onInput: (e) => this.setState({ query: e.target.value }),
+      onFocus: () => this.setState({ focused: true }),
+      onBlur: () => this.setState({ focused: false }),
+      inputBorder: this.state.focused ? "#FF9F43" : "#292724",
+      dongs,
+      empty: filtered.length === 0,
+      dots,
+      nearby: () => {
+        this.setState({ selected: "__nearby__" });
+        if (this.props.onPick) setTimeout(() => this.props.onPick({ name: "은행동", count: 187 }), 220);
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

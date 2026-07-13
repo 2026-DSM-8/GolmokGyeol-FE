@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0D0C0B; }
+  @keyframes gk-flowfade { from { opacity: 0; } to { opacity: 1; } }
+  .gk-screen { position: absolute; inset: 0; animation: gk-flowfade 320ms cubic-bezier(0.4,0,0.2,1); }
+</style>
+</helmet>
+<div style="position: relative; height: 100vh; width: 100%; overflow: hidden; background: #0D0C0B;">
+  <sc-if value="{{ isDong }}" hint-placeholder-val="{{ true }}">
+    <div class="gk-screen" key="dong">
+      <dc-import name="동 선택" on-pick="{{ onPickDong }}" hint-size="100%,100%" style="width: 100%; height: 100%;"></dc-import>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+    <div class="gk-screen" key="search">
+      <dc-import name="검색" dong="{{ dong }}" on-back="{{ toDong }}" on-go-map="{{ toMap }}" hint-size="100%,100%" style="width: 100%; height: 100%;"></dc-import>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+    <div class="gk-screen" key="map">
+      <dc-import name="취향 지도" query="{{ query }}" dong-name="{{ dongName }}" on-back="{{ toSearch }}" hint-size="100%,100%" style="width: 100%; height: 100%;"></dc-import>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { screen: "dong", dong: null, query: "" };
+  renderVals() {
+    const s = this.state.screen;
+    return {
+      isDong: s === "dong", isSearch: s === "search", isMap: s === "map",
+      dong: this.state.dong,
+      dongName: this.state.dong ? this.state.dong.name : "은행동",
+      query: this.state.query,
+      onPickDong: (d) => this.setState({ dong: d, screen: "search" }),
+      toDong: () => this.setState({ screen: "dong" }),
+      toMap: (q) => this.setState({ query: q, screen: "map" }),
+      toSearch: () => this.setState({ screen: "search" }),
+    };
+  }
+}
+</script>
+</body>
+</html>
