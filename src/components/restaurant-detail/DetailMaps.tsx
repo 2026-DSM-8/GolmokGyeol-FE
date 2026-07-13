@@ -13,65 +13,75 @@ const getColor = ([x, y]: Restaurant['position']) => colors[y > 0 ? (x < 0 ? 0 :
 
 export function TastePositionMap({ restaurant }: { restaurant: Restaurant }) {
   return (
-    <div className="detail-map-card">
-      <svg viewBox={`0 0 ${mapWidth} ${mapHeight}`} role="img" aria-label={`${restaurant.name}의 취향 지도 위치`}>
-        <rect width={mapWidth} height={mapHeight} className="detail-map-base" />
-        <rect width={mapWidth / 2} height={mapHeight / 2} fill={colors[0]} className="detail-map-wash" />
-        <rect x={mapWidth / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[1]} className="detail-map-wash" />
-        <rect y={mapHeight / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[2]} className="detail-map-wash" />
-        <rect x={mapWidth / 2} y={mapHeight / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[3]} className="detail-map-wash" />
-        <path d={`M0 ${mapHeight / 2}H${mapWidth}M${mapWidth / 2} 0V${mapHeight}`} className="detail-map-axis" />
+    <MapCard>
+      <MapSvg viewBox={`0 0 ${mapWidth} ${mapHeight}`} role="img" aria-label={`${restaurant.name}의 취향 지도 위치`}>
+        <MapBase width={mapWidth} height={mapHeight} />
+        <MapWash width={mapWidth / 2} height={mapHeight / 2} fill={colors[0]} />
+        <MapWash x={mapWidth / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[1]} />
+        <MapWash y={mapHeight / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[2]} />
+        <MapWash x={mapWidth / 2} y={mapHeight / 2} width={mapWidth / 2} height={mapHeight / 2} fill={colors[3]} />
+        <MapAxis d={`M0 ${mapHeight / 2}H${mapWidth}M${mapWidth / 2} 0V${mapHeight}`} />
         {restaurants.map((item) => {
           const point = toPoint(item.position)
           const active = item.id === restaurant.id
           if (active) return null
           return (
-            <circle
+            <MapDot
               key={item.id}
               cx={point.x}
               cy={point.y}
               r={2.5}
               fill={getColor(item.position)}
-              className="detail-map-dot"
             />
           )
         })}
-        <circle cx={toPoint(restaurant.position).x} cy={toPoint(restaurant.position).y} r="12" fill="none" stroke={getColor(restaurant.position)} className="detail-map-ring" />
-        {restaurant.hidden ? (
-          <path
-            d="M0 -6L1.7 -1.7L6 0L1.7 1.7L0 6L-1.7 1.7L-6 0L-1.7 -1.7Z"
-            transform={`translate(${toPoint(restaurant.position).x} ${toPoint(restaurant.position).y})`}
-            fill="none"
-            stroke={getColor(restaurant.position)}
-            className="detail-map-unrecorded"
-          />
-        ) : restaurant.reviews < 40 ? (
-          <path
+        <MapRing cx={toPoint(restaurant.position).x} cy={toPoint(restaurant.position).y} r="12" fill="none" stroke={getColor(restaurant.position)} />
+        {restaurant.reviews < 40 ? (
+          <LowReviewMarker
             d="M0 -6L6 0L0 6L-6 0Z"
             transform={`translate(${toPoint(restaurant.position).x} ${toPoint(restaurant.position).y})`}
             fill="#0d0c0b"
             stroke={getColor(restaurant.position)}
-            className="detail-map-low"
           />
         ) : (
-          <circle cx={toPoint(restaurant.position).x} cy={toPoint(restaurant.position).y} r="5" fill={getColor(restaurant.position)} className="detail-map-active" />
+          <ActiveDot cx={toPoint(restaurant.position).x} cy={toPoint(restaurant.position).y} r="5" fill={getColor(restaurant.position)} />
         )}
-      </svg>
+      </MapSvg>
       <p>{restaurant.position[0] < 0 ? '조용한' : '활기찬'} {restaurant.position[1] < 0 ? '혼밥' : '모임'} 군집</p>
-    </div>
+    </MapCard>
   )
 }
 
 export function LocationMap({ restaurant }: { restaurant: Restaurant }) {
   return (
-    <div className="detail-map-card">
-      <div className="location-map" role="img" aria-label={`${restaurant.address} 위치 지도`}>
-        <span className="road road-horizontal" />
-        <span className="road road-vertical" />
-        <span className="road road-diagonal" />
-        <span className="location-pin" />
-      </div>
+    <MapCard>
+      <LocationGraphic role="img" aria-label={`${restaurant.address} 위치 지도`}>
+        <Road $direction="horizontal" />
+        <Road $direction="vertical" />
+        <Road $direction="diagonal" />
+        <LocationPin />
+      </LocationGraphic>
       <p>{restaurant.address}</p>
-    </div>
+    </MapCard>
   )
 }
+
+const MapCard = styled.div`
+  p { margin: 8px 0 0; color: var(--sub); font-size: 12px; text-align: center; }
+  @media (max-width: 640px) { p { min-height: 38px; } }
+`
+const MapSvg = styled.svg`display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px;`
+const MapBase = styled.rect`fill: var(--quote);`
+const MapWash = styled.rect`opacity: .05;`
+const MapAxis = styled.path`fill: none; stroke: var(--line); stroke-width: .28; stroke-dasharray: 1 1;`
+const MapDot = styled.circle`opacity: .25;`
+const MapRing = styled.circle`opacity: .35; stroke-width: 1;`
+const LowReviewMarker = styled.path`stroke-width: 1.5;`
+const ActiveDot = styled.circle`filter: drop-shadow(0 0 1.4px var(--accent));`
+const LocationGraphic = styled.div`position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: var(--quote);`
+const Road = styled.span<{ $direction: 'horizontal'|'vertical'|'diagonal' }>`
+  position: absolute; display: block; background: var(--card);
+  ${({ $direction }) => $direction === 'horizontal' ? 'top:42%;right:0;left:0;height:11%;opacity:.8;' : $direction === 'vertical' ? 'top:0;bottom:0;left:28%;width:9%;opacity:.8;' : 'top:-10%;bottom:-10%;left:64%;width:7%;opacity:.6;transform:rotate(14deg);'}
+`
+const LocationPin = styled.span`position: absolute; top: 38%; left: 22%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px var(--halo);`
+import styled from '@emotion/styled'

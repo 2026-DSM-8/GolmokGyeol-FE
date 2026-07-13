@@ -24,20 +24,20 @@ export function TasteMapPage() {
   const locationName = searchScope.neighborhood || '태평동'
 
   return (
-    <main className="map-page">
+    <Page>
       <MapQueryHeader
         locationName={locationName}
         query={query}
         onBack={() => navigate('/search')}
       />
-      <div className="map-result-summary">
+      <ResultSummary>
         <p>조용히 혼자 먹기 좋은 집 <strong>23곳</strong>을 찾았어요. 이 안에서도 갈려요 → <span>후딱 먹기 ↔ 오래 머물기</span></p>
-      </div>
-      <section className="map-layout">
-        <div className="map-column">
+      </ResultSummary>
+      <Layout>
+        <MapColumn>
           <TasteMap taste={taste} onTasteChange={setTaste} recommendations={recommendations} onOpenRestaurant={openRestaurant} loading={loading} />
-        </div>
-        <aside className="recommendation-rail" aria-label={selectedRestaurant ? `${selectedRestaurant.name} 상세 정보` : '취향과 가까운 추천 식당'}>
+        </MapColumn>
+        <RecommendationRail aria-label={selectedRestaurant ? `${selectedRestaurant.name} 상세 정보` : '취향과 가까운 추천 식당'}>
           {selectedRestaurant ? (
             <RestaurantSidebar
               restaurant={selectedRestaurant}
@@ -45,15 +45,51 @@ export function TasteMapPage() {
               onFindSimilar={() => findSimilar(selectedRestaurant)}
             />
           ) : (
-            <div className="recommendation-overview">
+            <RecommendationOverview>
               <h2>이 자리에 가까운 곳</h2>
-              <p className="recommendation-help">점을 살살 밀어보세요. 순서가 바뀌어요.</p>
-              <div className="recommendation-list">{recommendations.map((restaurant, index) => <RecommendationCard key={restaurant.id} restaurant={restaurant} order={index + 1} onClick={() => openRestaurant(restaurant)} />)}</div>
-              <p className="recommendation-note">별점도 랭킹도 없어요. 당신 자리에 가까운 순서일 뿐이에요.</p>
-            </div>
+              <Help>점을 살살 밀어보세요. 순서가 바뀌어요.</Help>
+              <RecommendationList>{recommendations.map((restaurant, index) => <RecommendationCard key={restaurant.id} restaurant={restaurant} order={index + 1} onClick={() => openRestaurant(restaurant)} />)}</RecommendationList>
+              <Note>별점도 랭킹도 없어요. 당신 자리에 가까운 순서일 뿐이에요.</Note>
+            </RecommendationOverview>
           )}
-        </aside>
-      </section>
-    </main>
+        </RecommendationRail>
+      </Layout>
+    </Page>
   )
 }
+
+const Page = styled.main`
+  display: flex; flex-direction: column; width: 100%; height: 100dvh; min-height: 640px; overflow: hidden;
+  color: var(--ink); background: var(--background);
+  @media (max-width: 900px) { height: auto; min-height: 100vh; overflow: visible; }
+`
+const ResultSummary = styled.div`
+  display: flex; flex: none; align-items: center; min-height: 48px; padding: 12px 20px;
+  border-bottom: 1px solid var(--line); background: var(--card);
+  p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.5; letter-spacing: -.01em; }
+  strong, span { color: var(--ink); font-weight: 400; }
+  @media (max-width: 640px) { padding: 10px 14px; p { font-size: 13px; } }
+`
+const Layout = styled.section`
+  display: grid; flex: 1; grid-template-columns: auto minmax(440px, 1fr); align-items: stretch; width: 100%; min-height: 0;
+  @media (max-width: 900px) { display: flex; flex-direction: column; }
+`
+const MapColumn = styled.div`
+  display: flex; align-items: flex-start; justify-content: flex-start; width: min(calc(100dvh - 104px), calc(100vw - 440px));
+  min-width: 0; min-height: 0; overflow: hidden; background: var(--background);
+  @media (max-width: 900px) { width: 100%; }
+`
+const RecommendationRail = styled.aside`
+  min-width: 0; min-height: 0; height: 100%; overflow-y: auto; border-left: 1px solid var(--line);
+  background: var(--background); scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+  @media (max-width: 900px) { width: 100%; height: auto; overflow: visible; border-top: 1px solid var(--line); border-left: 0; }
+`
+const RecommendationOverview = styled.div`
+  min-height: 100%; padding: 32px 28px;
+  h2 { margin: 0; font-size: 20px; font-weight: 500; line-height: 1.4; letter-spacing: -.01em; }
+  @media (max-width: 640px) { padding: 24px 18px 32px; }
+`
+const Help = styled.p`margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5;`
+const RecommendationList = styled.div`display: flex; flex-direction: column; gap: 10px; margin-top: 24px;`
+const Note = styled.p`margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6;`
+import styled from '@emotion/styled'
