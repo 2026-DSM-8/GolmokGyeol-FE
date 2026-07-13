@@ -1,0 +1,44 @@
+name: 버그 제보
+description: 재현 가능한 문제를 제보합니다.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 문제 설명
+      description: 발생한 문제를 명확하게 작성해 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      description: 문제를 재현할 수 있는 순서를 작성해 주세요.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+      description: 정상적으로 동작했을 때의 결과를 작성해 주세요.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 실행 환경
+      description: OS, 브라우저와 버전 등을 작성해 주세요.
+      placeholder: macOS 15 / Chrome 136
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: 추가 정보
+      description: 스크린샷, 로그 등 참고 자료가 있다면 첨부해 주세요.
