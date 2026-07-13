@@ -1,3 +1,4 @@
+import styled from '@emotion/styled'
 import { Navigate, useNavigate } from 'react-router'
 import { SearchExperience, TasteBackdrop } from '../components/landing'
 import { useTasteStore } from '../store/useTasteStore'
@@ -17,13 +18,25 @@ export function SearchPage() {
   }
 
   return (
-    <div className="prototype-flow">
+    <Flow>
       <TasteBackdrop />
       <SearchExperience
         scope={searchScope}
         onChangeNeighborhood={() => navigate('/')}
         onSearch={search}
       />
-    </div>
+    </Flow>
   )
 }
+
+const Flow = styled.div`
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--background);
+
+  > :not(:first-of-type) {
+    position: relative;
+    z-index: 1;
+  }
+`

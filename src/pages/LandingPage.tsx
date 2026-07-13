@@ -1,3 +1,4 @@
+import styled from '@emotion/styled'
 import { useNavigate } from 'react-router'
 import { NeighborhoodSelector, TasteBackdrop } from '../components/landing'
 import { useTasteStore } from '../store/useTasteStore'
@@ -11,9 +12,21 @@ export function LandingPage() {
   }
 
   return (
-    <div className="prototype-flow">
+    <Flow>
       <TasteBackdrop />
       <NeighborhoodSelector onSelect={selectNeighborhood} />
-    </div>
+    </Flow>
   )
 }
+
+const Flow = styled.div`
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--background);
+
+  > :not(:first-of-type) {
+    position: relative;
+    z-index: 1;
+  }
+`
