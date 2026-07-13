@@ -1,6 +1,7 @@
 import { LocationMap, TastePositionMap } from '../restaurant-detail'
 import { getReviewEvidence } from '../../mocks/restaurants'
 import type { Restaurant } from '../../types/restaurant'
+import { getPromotionalComment } from '../../utils/tasteMap'
 
 type RestaurantSidebarProps = {
   restaurant: Restaurant
@@ -25,6 +26,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
   const pointClass = getPointClass(restaurant.position)
   const pointColor = getPointColor(restaurant.position)
   const maxCount = Math.max(1, restaurant.keywords.length * 5)
+  const promotionalComment = getPromotionalComment(restaurant)
 
   return (
     <div className="restaurant-sidebar">
@@ -35,8 +37,13 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
         </button>
 
         <header className="sidebar-heading">
-          <div><span className={`sidebar-color-dot ${pointClass}`} /><h2>{restaurant.name}</h2></div>
-          <p>{restaurant.category} · {restaurant.hidden ? '후기 없음' : `후기 ${restaurant.reviews}건`}</p>
+          <div>
+            <span className={`sidebar-color-dot ${pointClass}`} />
+            <h2>{restaurant.name}</h2>
+            {restaurant.hidden && <span className="hidden-badge">기록 없음</span>}
+          </div>
+          <p>{restaurant.category}{!restaurant.hidden && ` · 후기 ${restaurant.reviews}건`}</p>
+          <p className="detail-promo-comment">{promotionalComment}</p>
         </header>
 
         {restaurant.reviews < 40 && !restaurant.hidden && (

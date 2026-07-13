@@ -553,11 +553,17 @@ export const globalStyles = css`
   }
   .prototype-node:hover { opacity: 1 !important; }
   .prototype-node:focus-visible { outline: none; }
+  .node-hit-area { fill: transparent; pointer-events: all; }
+  .prototype-node:focus-visible .node-hit-area { stroke: var(--accent); stroke-width: 3; }
   .node-ring { fill: none; stroke: currentColor; stroke-width: 1.2; opacity: .35; }
   .node-shape { stroke: none; }
-  .node-diamond { fill: var(--background); stroke: currentColor; stroke-width: 1.5; }
-  .node-star { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-dasharray: 1.8 1.8; animation: gk-pulse 3s ease-in-out infinite; }
+  .node-diamond { fill: var(--background); stroke: currentColor; stroke-width: 2; }
+  .node-unrecorded-halo { opacity: .16; transform-box: fill-box; transform-origin: center; animation: halo-breathe 3.2s ease-in-out infinite; }
+  .node-star { fill: var(--background); stroke: currentColor; stroke-width: 2.4; }
   .prototype-node-name { fill: var(--ink); font-size: 12px; font-weight: 400; letter-spacing: -.01em; paint-order: stroke; stroke: var(--background); stroke-width: 5px; stroke-linejoin: round; }
+  .prototype-node.is-low .prototype-node-name { font-size: 13px; font-weight: 500; }
+  .prototype-node.is-none .prototype-node-name { font-size: 14px; font-weight: 650; }
+  .prototype-node-status { fill: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: .03em; paint-order: stroke; stroke: var(--background); stroke-width: 5px; stroke-linejoin: round; }
   .prototype-node-category { fill: var(--muted); font-size: 11px; paint-order: stroke; stroke: var(--background); stroke-width: 4px; }
   .taste-bubble { fill: var(--quote); stroke: #3a3733; stroke-width: 1; }
   .taste-bubble-label { fill: var(--ink); font-size: 12px; font-weight: 400; letter-spacing: -.01em; }
@@ -670,11 +676,16 @@ export const globalStyles = css`
   .detail-summary { margin-top: 28px; }
   .detail-summary h1 { margin: 0; font-family: var(--serif); font-size: 34px; font-weight: 500; line-height: 1.4; }
   .detail-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; color: var(--sub); font-size: 13px; }
+  .detail-promo-comment { max-width: 620px; margin: 16px 0 0; padding-left: 14px; border-left: 2px solid var(--accent); color: var(--sub); font-size: 15px; line-height: 1.7; letter-spacing: -.01em; }
+  .sidebar-heading .detail-promo-comment { margin-top: 16px; color: var(--sub); font-size: 14px; }
   .detail-keywords { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
   .detail-keywords span { padding: 5px 13px; border-radius: 999px; background: var(--quote); font-size: 12.5px; white-space: nowrap; }
   .review-evidence { margin-top: 28px; }
   .section-kicker { margin: 0; color: var(--sub); font-size: 11.5px; letter-spacing: .12em; }
   .review-evidence h2 { margin: 6px 0 0; font-family: var(--serif); font-size: 17px; font-weight: 500; }
+  .detail-unrecorded-callout { margin-top: 28px; padding: 18px; border: 1px solid #7a4e1f; border-radius: 12px; background: var(--quote); }
+  .detail-unrecorded-callout h2 { margin: 6px 0 0; color: var(--accent); font-family: var(--serif); font-size: 18px; font-weight: 500; }
+  .detail-unrecorded-callout > p:last-child { margin: 10px 0 0; color: var(--sub); font-size: 14px; line-height: 1.7; }
   .review-quote-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
   .review-quote-list blockquote { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--quote); }
   .review-quote-list p { margin: 0; font-size: 14px; line-height: 1.7; }
