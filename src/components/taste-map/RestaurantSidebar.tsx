@@ -1,28 +1,40 @@
+import { useEffect, useState } from 'react'
 import { LocationMap, TastePositionMap } from '../restaurant-detail'
-import { getReviewEvidence } from '../../mocks/restaurants'
 import type { Restaurant } from '../../types/restaurant'
+import { formatQuadrantLabel, naverMapSearchUrl, sourceHref, sourceLabel } from '../../utils/restaurantDisplay'
 import { getClosingPromotionalComment, getPromotionalComment } from '../../utils/tasteMap'
 
 type RestaurantSidebarProps = {
   restaurant: Restaurant
   onBack: () => void
   onFindSimilar: () => void
+  quadrants: [string, string, string, string]
 }
 
 const getPointColor = ([x, y]: Restaurant['position']) => (
   y >= 0 ? (x < 0 ? '#a99bf7' : '#f5946e') : (x < 0 ? '#63d5aa' : '#f28fb4')
 )
 
-const quadrantName = ([x, y]: Restaurant['position']) => (
-  y >= 0 ? (x < 0 ? '느긋한 밥집' : '카페 같은 곳') : (x < 0 ? '가성비 혼밥' : '퀄리티 혼밥')
+const quadrantName = ([x, y]: Restaurant['position'], quadrants: [string, string, string, string]) => (
+  formatQuadrantLabel(quadrants[y >= 0 ? (x < 0 ? 2 : 3) : (x < 0 ? 0 : 1)])
 )
 
-export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: RestaurantSidebarProps) {
-  const evidence = getReviewEvidence(restaurant)
+export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants }: RestaurantSidebarProps) {
+  const [reviewsExpanded, setReviewsExpanded] = useState(false)
+  const evidence = [
+    restaurant.matchedSnippet,
+    ...restaurant.snippets.filter((snippet) => snippet.text !== restaurant.matchedSnippet.text),
+  ]
+  const visibleEvidence = reviewsExpanded ? evidence : evidence.slice(0, 5)
+  const hiddenReviewCount = Math.max(0, evidence.length - 5)
   const pointColor = getPointColor(restaurant.position)
-  const maxCount = Math.max(1, restaurant.keywords.length * 5)
+  const maxCount = Math.max(1, ...restaurant.mentions.map((mention) => mention.count))
   const promotionalComment = getPromotionalComment(restaurant)
   const closingPromotionalComment = getClosingPromotionalComment(restaurant)
+
+  useEffect(() => {
+    setReviewsExpanded(false)
+  }, [restaurant.id])
 
   return (
     <Sidebar>
@@ -41,7 +53,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
           <PromoComment>{promotionalComment}</PromoComment>
         </Heading>
 
-        {restaurant.reviews < 40 && (
+        {restaurant.confidence === 'low' && (
           <Caution>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
             후기가 적어요. 취향 자리가 부정확할 수 있어요.
@@ -53,37 +65,52 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
           <MapPair>
             <MapPanel>
               <TastePositionMap restaurant={restaurant} />
-              <QuadrantCaption $color={pointColor}>‘{quadrantName(restaurant.position)}’ 자리</QuadrantCaption>
+              <QuadrantCaption $color={pointColor}>‘{quadrantName(restaurant.position, quadrants)}’ 자리</QuadrantCaption>
             </MapPanel>
             <LocationPanel>
               <LocationMap restaurant={restaurant} />
               <Address>{restaurant.address}</Address>
-              <LocationNote>골목 안쪽, 도보로 찾아가기 좋아요</LocationNote>
+              {restaurant.locationDesc && <LocationNote>{restaurant.locationDesc}</LocationNote>}
             </LocationPanel>
           </MapPair>
         </PositionSection>
 
-        <Section>
-          <h3>이런 말이 자주 나와요</h3>
-          <MentionList>
-            {restaurant.keywords.map((keyword, index) => {
-              const count = Math.max(2, maxCount - index * 4)
-              return (
-                <MentionItem key={keyword}>
-                  <p><span>{keyword}</span><span>{count}</span></p>
-                  <div><MentionBar $color={pointColor} $width={Math.max(34, 100 - index * 24)} /></div>
+        {restaurant.mentions.length > 0 && (
+          <Section>
+            <h3>후기에서 자주 나온 말</h3>
+            <MentionList>
+              {restaurant.mentions.map((mention) => (
+                <MentionItem key={mention.text}>
+                  <p><span>{mention.text}</span><span>{mention.count}회</span></p>
+                  <div><MentionBar $color={pointColor} $width={(mention.count / maxCount) * 100} /></div>
                 </MentionItem>
-              )
-            })}
-          </MentionList>
-        </Section>
+              ))}
+            </MentionList>
+          </Section>
+        )}
 
         <Section>
-          <h3>이 문장들 때문에 여기 있어요</h3>
-          <Snippets>
-            {evidence.map(({ quote }) => <blockquote key={quote}>“{quote}”</blockquote>)}
+          <h3>추천에 참고한 후기 문장</h3>
+          <Snippets id="sidebar-review-list">
+            {visibleEvidence.map(({ text, source }) => <blockquote key={`${source}-${text}`}>“{text}”</blockquote>)}
           </Snippets>
-          <SnippetSource>네이버 블로그 후기</SnippetSource>
+          {hiddenReviewCount > 0 && (
+            <ReviewMoreButton
+              type="button"
+              aria-expanded={reviewsExpanded}
+              aria-controls="sidebar-review-list"
+              onClick={() => setReviewsExpanded((current) => !current)}
+            >
+              {reviewsExpanded ? '후기 접기' : `후기 ${hiddenReviewCount}개 더보기`}
+            </ReviewMoreButton>
+          )}
+          <SnippetSources>
+            {[...new Set(visibleEvidence.map(({ source }) => source).filter(Boolean))].map((source) => (
+              <a key={source} href={sourceHref(source)} target="_blank" rel="noreferrer">
+                {sourceLabel(source)} ↗
+              </a>
+            ))}
+          </SnippetSources>
         </Section>
 
         <ClosingPromo>
@@ -94,7 +121,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar }: Restaur
 
       <Actions>
         <button onClick={onFindSimilar}>여기랑 비슷한 집</button>
-        <a href={`https://map.naver.com/p/search/${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noreferrer">길찾기</a>
+        <a href={naverMapSearchUrl(restaurant)} target="_blank" rel="noreferrer">길찾기</a>
       </Actions>
     </Sidebar>
   )
@@ -134,7 +161,15 @@ const MentionItem = styled.div`
 `
 const MentionBar = styled.i<{ $color:string;$width:number }>`display:block;width:${({$width})=>$width}%;height:100%;border-radius:2px;background:${({$color})=>$color};`
 const Snippets = styled.div`display:flex;flex-direction:column;gap:10px;blockquote{margin:0;padding:16px 18px;border-left:3px solid var(--accent);border-radius:10px;color:var(--ink);background:var(--quote);font-size:17px;line-height:1.7;letter-spacing:-.01em}`
-const SnippetSource = styled.p`margin:14px 0 0;color:var(--muted);font-size:13px;text-align:right;`
+const SnippetSources = styled.div`
+  display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px 12px;margin-top:14px;font-size:13px;
+  a{color:var(--muted);text-decoration:none}a:hover{color:var(--ink);text-decoration:underline}
+`
+const ReviewMoreButton = styled.button`
+  width:100%;margin-top:14px;padding:11px 14px;border:1px solid var(--line);border-radius:9px;
+  color:var(--sub);background:transparent;cursor:pointer;font-size:13px;
+  &:hover{border-color:#3a3733;color:var(--ink);background:var(--quote)}
+`
 const ClosingPromo = styled.aside`
   margin-top:36px;padding:22px;border:1px solid rgba(255,159,67,.24);border-radius:12px;background:linear-gradient(135deg,var(--halo),var(--card));
   span{color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.08em}strong{display:block;margin-top:8px;color:var(--ink);font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.6}

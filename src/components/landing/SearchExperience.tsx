@@ -1,72 +1,86 @@
 import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { SearchScope } from '../../store/useTasteStore'
+import type { Reask, SearchResponse } from '../../types/restaurant'
+import { getSearchQueryError } from '../../utils/searchIntent'
 
 type SearchExperienceProps = {
   scope: SearchScope
   onChangeNeighborhood: () => void
-  onSearch: (query: string) => void
+  onSearch: (query: string, force?: boolean) => Promise<SearchResponse>
 }
 
-type Reask = {
-  query: string
-  headline: string
-  subline: string
-  placeholder: string
-  options: string[]
-  showAll?: boolean
+type SearchError = {
+  title: string
+  message: string
 }
 
 const examples = ['혼자 조용히', '친구랑 수다', '후딱 한 끼', '오래 앉아있기']
-const cuisines = ['닭갈비', '삼겹살', '국밥', '파스타', '초밥', '냉면', '피자', '치킨', '쌀국수', '곱창', '김밥', '라멘', '돈까스', '막창', '갈비', '보쌈']
-const genericWords = ['맛집', '추천', '근처', '유명', '인기', '베스트', 'best']
 
 export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: SearchExperienceProps) {
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [reask, setReask] = useState<Reask | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [loadingQuery, setLoadingQuery] = useState('')
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [error, setError] = useState<SearchError | null>(null)
 
-  const routeQuery = (raw: string) => {
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSeconds(0)
+      return
+    }
+
+    const startedAt = Date.now()
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000))
+    }, 500)
+    return () => window.clearInterval(timer)
+  }, [loading])
+
+  const runSearch = async (raw: string, force = false) => {
     const nextQuery = raw.trim()
-    if (!nextQuery) return
-    const cuisine = cuisines.find((item) => nextQuery.includes(item))
-    if (cuisine) {
-      setReask({
-        query: nextQuery,
-        headline: `${scope.neighborhood}에 ${cuisine}집이\n8곳 있어요.`,
-        subline: '그런데 다 다른 집이에요.\n어떤 자리를 찾으세요?',
-        placeholder: `예: “회식용 ${cuisine}집”`,
-        options: ['혼자 조용히', '여럿이 왁자지껄', '가성비 좋게', '분위기 있게'],
-        showAll: true,
-      })
+    if (!nextQuery || loading) return
+
+    const queryError = getSearchQueryError(nextQuery)
+    if (queryError) {
+      setError({ title: '입력 내용을 확인해주세요', message: queryError })
       return
     }
-    if (genericWords.some((word) => nextQuery.toLowerCase().includes(word.toLowerCase()))) {
-      setReask({
-        query: nextQuery,
-        headline: '맛있는 집은\n네이버가 더 잘 알아요.',
-        subline: '저희는 다른 걸 알려드릴게요.\n어떤 자리를 원하세요?',
-        placeholder: '예: 비 오는 날 혼자 앉기 좋은 곳',
-        options: ['혼자 조용히', '친구랑 수다', '후딱 한 끼', '오래 앉아있기', '가성비 좋게', '특별한 날'],
+
+    setLoadingQuery(nextQuery)
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await onSearch(nextQuery, force)
+      if (response.type === 'reask') {
+        setReask(response.reask)
+        setQuery('')
+      }
+    } catch {
+      setError({
+        title: '검색 중 문제가 생겼어요',
+        message: '검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해주세요.',
       })
-      return
+    } finally {
+      setLoading(false)
     }
-    onSearch(nextQuery)
   }
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    routeQuery(query)
+    void runSearch(query)
   }
 
   return (
-    <Page>
+    <Page aria-busy={loading}>
       <Topbar>
         <Wordmark>골목결</Wordmark>
         <div>
-          <span>{scope.neighborhood} · 식당 187곳</span>
+          <span>{scope.neighborhood} · 식당 {scope.storeCount}곳</span>
           <button onClick={onChangeNeighborhood}>바꾸기</button>
         </div>
       </Topbar>
@@ -82,41 +96,105 @@ export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: Sear
             </ReaskQuery>
             <ReaskDivider />
             <h1>{reask.headline}</h1>
-            <p>{reask.subline}</p>
+            <p>{loading ? '골목을 다시 그리는 중이에요.\n잠시만 기다려주세요.' : reask.subline}</p>
             <ReaskGrid>
-              {reask.options.map((option, index) => <ReaskOption key={option} $tone={index % 4} onClick={() => onSearch(option)}>{option}</ReaskOption>)}
+              {reask.options.map((option, index) => (
+                <ReaskOption
+                  key={option}
+                  $tone={index % 4}
+                  onClick={() => void runSearch(`${reask.query} ${option}`)}
+                  disabled={loading}
+                >
+                  {option}
+                </ReaskOption>
+              ))}
             </ReaskGrid>
             <ReaskDirectLabel>또는 직접 말해보세요</ReaskDirectLabel>
-            <ReaskInput $focused={focused} onSubmit={submit}>
-              <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={reask.placeholder} />
+            <ReaskInput $focused={focused} $invalid={Boolean(error)} onSubmit={submit}>
+              <input value={query} onChange={(event) => { setQuery(event.target.value); setError(null) }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={reask.placeholder} disabled={loading} aria-invalid={Boolean(error)} />
             </ReaskInput>
-            {reask.showAll && <ShowAllButton onClick={() => onSearch(reask.query)}>8곳 그냥 다 보기</ShowAllButton>}
+            {error && <ErrorNotice error={error} />}
+            {reask.showAll && <ShowAllButton onClick={() => void runSearch(reask.query, true)} disabled={loading}>그냥 다 보기</ShowAllButton>}
           </ReaskView>
         ) : (
           <SearchView>
             <SearchHeading $delay={0}>오늘은 어떤 자리에<br />앉고 싶어요?</SearchHeading>
-            <SearchLede $delay={80}>편하게 말해보세요.<br />골목이 다시 그려질 거예요.</SearchLede>
+            <SearchLede $delay={80}>
+              {loading ? '골목을 다시 그리는 중이에요. 잠시만 기다려주세요.' : <>편하게 말해보세요.<br />골목이 다시 그려질 거예요.</>}
+            </SearchLede>
             <QueryForm $delay={160} onSubmit={submit}>
-              <SearchField $focused={focused}>
+              <SearchField $focused={focused} $invalid={Boolean(error)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-                <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="혼자 조용히 밥 먹고 싶어" />
-                <SubmitButton type="submit" $ready={Boolean(query.trim())} aria-label="찾기">
+                <input value={query} onChange={(event) => { setQuery(event.target.value); setError(null) }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="혼자 조용히 밥 먹고 싶어" disabled={loading} aria-invalid={Boolean(error)} />
+                <SubmitButton type="submit" $ready={Boolean(query.trim()) && !loading} aria-label="찾기" disabled={loading}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                 </SubmitButton>
               </SearchField>
             </QueryForm>
+            {error && <ErrorNotice error={error} />}
             <ExampleGrid $delay={240}>
-              {examples.map((example) => <button key={example} onClick={() => onSearch(example)}>{example}</button>)}
+              {examples.map((example) => <button key={example} onClick={() => void runSearch(example)} disabled={loading}>{example}</button>)}
             </ExampleGrid>
           </SearchView>
         )}
       </Stage>
+      {loading && (
+        <SearchLoading role="status" aria-live="polite" aria-label="식당 검색 중">
+          <LoadingCard>
+            <LoadingOrbit aria-hidden="true"><i /><i /><i /></LoadingOrbit>
+            <strong>{scope.neighborhood}의 골목을 찾고 있어요</strong>
+            <LoadingQuery>“{loadingQuery}”</LoadingQuery>
+            <LoadingStatus>
+              {elapsedSeconds < 3
+                ? '골목 데이터를 확인하는 중이에요.'
+                : elapsedSeconds < 7
+                  ? '취향 기준을 정리하는 중이에요.'
+                  : '추천 지도를 완성하는 중이에요.'}
+            </LoadingStatus>
+            <LoadingTrack aria-hidden="true"><i /></LoadingTrack>
+            <LoadingTime aria-hidden="true">{elapsedSeconds}초 · 검색이 끝나면 자동으로 지도로 이동해요.</LoadingTime>
+          </LoadingCard>
+        </SearchLoading>
+      )}
     </Page>
+  )
+}
+
+function ErrorNotice({ error }: { error: SearchError }) {
+  return (
+    <ErrorCard role="alert" aria-live="assertive">
+      <ErrorIcon aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7.5v5" />
+          <circle cx="12" cy="16.5" r=".75" fill="currentColor" stroke="none" />
+        </svg>
+      </ErrorIcon>
+      <div>
+        <strong>{error.title}</strong>
+        <span>{error.message}</span>
+      </div>
+    </ErrorCard>
   )
 }
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+`
+
+const orbit = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`
+
+const loadingSweep = keyframes`
+  0% { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(280%); }
+`
+
+const errorIn = keyframes`
+  from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: none; }
 `
 
@@ -204,13 +282,13 @@ const QueryForm = styled.form<{ $delay: number }>`
   margin-top: 46px;
 `
 
-const SearchField = styled.div<{ $focused: boolean }>`
+const SearchField = styled.div<{ $focused: boolean; $invalid: boolean }>`
   display: flex;
   align-items: center;
   gap: 14px;
   height: 68px;
   padding: 0 12px 0 24px;
-  border: 1px solid ${({ $focused }) => $focused ? 'var(--accent)' : 'var(--line)'};
+  border: 1px solid ${({ $focused, $invalid }) => $invalid ? 'var(--orange)' : $focused ? 'var(--accent)' : 'var(--line)'};
   border-radius: 999px;
   color: var(--muted);
   background: var(--card);
@@ -314,14 +392,46 @@ const ReaskDirectLabel = styled.span`
   font-size: 13px;
 `
 
-const ReaskInput = styled.form<{ $focused: boolean }>`
+const ReaskInput = styled.form<{ $focused: boolean; $invalid: boolean }>`
   height: 52px;
   margin-top: 12px;
   padding: 0 20px;
-  border: 1px solid ${({ $focused }) => $focused ? 'var(--accent)' : 'var(--line)'};
+  border: 1px solid ${({ $focused, $invalid }) => $invalid ? 'var(--orange)' : $focused ? 'var(--accent)' : 'var(--line)'};
   border-radius: 999px;
   background: var(--card);
   input { width: 100%; height: 100%; padding: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 15px; }
+`
+
+const ErrorCard = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(245, 148, 110, .62);
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(245, 148, 110, .12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .16);
+  animation: ${errorIn} 180ms cubic-bezier(.4, 0, .2, 1) both;
+
+  > div { min-width: 0; }
+  > div > strong { display: block; color: var(--orange); font-size: 15px; font-weight: 600; line-height: 1.4; }
+  > div > span { display: block; margin-top: 4px; color: #d8d2ca; font-size: 14px; line-height: 1.55; word-break: keep-all; }
+
+  @media (max-width: 640px) { padding: 14px 15px; }
+`
+
+const ErrorIcon = styled.span`
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--orange);
+  background: rgba(245, 148, 110, .16);
 `
 
 const ShowAllButton = styled.button`
@@ -336,3 +446,70 @@ const ShowAllButton = styled.button`
   font-size: 14px;
   &:hover { color: var(--sub); }
 `
+
+const SearchLoading = styled.div`
+  position: fixed;
+  z-index: 20;
+  inset: 56px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(13, 12, 11, .88);
+  backdrop-filter: blur(10px);
+`
+
+const LoadingCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(440px, 100%);
+  padding: 40px 32px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+  text-align: center;
+
+  > strong { margin-top: 24px; color: var(--ink); font-size: 21px; font-weight: 500; line-height: 1.4; }
+`
+
+const LoadingOrbit = styled.span`
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 64px;
+  animation: ${orbit} 1.8s linear infinite;
+
+  i { position: absolute; width: 12px; height: 12px; border-radius: 50%; }
+  i:nth-of-type(1) { top: 0; left: 26px; background: var(--orange); }
+  i:nth-of-type(2) { right: 4px; bottom: 9px; background: var(--violet); }
+  i:nth-of-type(3) { bottom: 9px; left: 4px; background: var(--green); }
+`
+
+const LoadingQuery = styled.p`
+  max-width: 100%;
+  margin: 12px 0 0;
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 15px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+const LoadingStatus = styled.p`margin: 24px 0 0; color: var(--ink); font-size: 14px; line-height: 1.5;`
+
+const LoadingTrack = styled.span`
+  display: block;
+  width: 100%;
+  height: 3px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--quote);
+
+  i { display: block; width: 36%; height: 100%; border-radius: inherit; background: var(--accent); animation: ${loadingSweep} 1.5s ease-in-out infinite; }
+`
+
+const LoadingTime = styled.small`margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5;`
