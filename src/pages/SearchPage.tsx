@@ -16,7 +16,7 @@ export function SearchPage() {
   }
 
   const search = async (query: string, force = false) => {
-    const skipReask = force || query.includes('음식점')
+    const skipReask = force || !query.includes('맛집')
     let response = await api.search(searchScope.neighborhood, query, skipReask)
     const fallbackQuery = getCuisineFallbackQuery(query)
 

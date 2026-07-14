@@ -78,11 +78,19 @@ export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: Sear
   return (
     <Page aria-busy={loading}>
       <Topbar>
-        <Wordmark>골목결</Wordmark>
-        <div>
+        <TopbarLeading>
+          <BackButton type="button" onClick={onChangeNeighborhood} aria-label="동네 선택으로 돌아가기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            뒤로
+          </BackButton>
+          <Wordmark>골목결</Wordmark>
+        </TopbarLeading>
+        <TopbarContext>
           <span>{scope.neighborhood} · 식당 {scope.storeCount}곳</span>
-          <button onClick={onChangeNeighborhood}>바꾸기</button>
-        </div>
+          <button type="button" onClick={onChangeNeighborhood}>바꾸기</button>
+        </TopbarContext>
       </Topbar>
 
       <Stage>
@@ -212,7 +220,7 @@ const Page = styled.main`
 const Topbar = styled.header`
   position: relative;
   z-index: 2;
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,24 +229,57 @@ const Topbar = styled.header`
   background: rgba(13, 12, 11, .72);
   backdrop-filter: blur(8px);
 
-  > div { display: flex; align-items: center; gap: 16px; }
-  > div > span { color: var(--sub); font-size: 13px; letter-spacing: -.01em; }
-  button { height: 28px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--sub); background: transparent; cursor: pointer; font-size: 13px; }
-  button:hover { border-color: #3a3733; color: var(--ink); background: var(--quote); }
-
   @media (max-width: 640px) {
     padding: 0 16px;
-    > div { gap: 9px; }
-    > div > span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+`
+
+const TopbarLeading = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 18px;
+`
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 8px 0 4px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--sub);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  &:hover { color: var(--ink); background: var(--quote); }
+`
+
+const TopbarContext = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  > span { color: var(--sub); font-size: 14px; letter-spacing: -.01em; }
+  > button { height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--sub); background: transparent; cursor: pointer; font-size: 14px; }
+  > button:hover { border-color: #3a3733; color: var(--ink); background: var(--quote); }
+
+  @media (max-width: 640px) {
+    gap: 9px;
+    > span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   }
 `
 
 const Wordmark = styled.span`
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: .18em;
+
+  @media (max-width: 640px) { display: none; }
 `
 
 const Stage = styled.div`
@@ -248,7 +289,7 @@ const Stage = styled.div`
 
 const SearchView = styled.section`
   width: 100%;
-  max-width: 720px;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   padding: 108px 24px 96px;
@@ -261,18 +302,18 @@ const SearchHeading = styled.h1<{ $delay: number }>`
   ${({ $delay }) => enter($delay)}
   margin: 0;
   color: var(--ink);
-  font-size: 40px;
+  font-size: 46px;
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: -.02em;
-  @media (max-width: 640px) { font-size: 34px; }
+  @media (max-width: 640px) { font-size: 38px; }
 `
 
 const SearchLede = styled.p<{ $delay: number }>`
   ${({ $delay }) => enter($delay)}
   margin: 22px 0 0;
   color: var(--sub);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.7;
   letter-spacing: -.01em;
 `
@@ -285,24 +326,24 @@ const QueryForm = styled.form<{ $delay: number }>`
 const SearchField = styled.div<{ $focused: boolean; $invalid: boolean }>`
   display: flex;
   align-items: center;
-  gap: 14px;
-  height: 68px;
-  padding: 0 12px 0 24px;
+  gap: 16px;
+  height: 76px;
+  padding: 0 13px 0 28px;
   border: 1px solid ${({ $focused, $invalid }) => $invalid ? 'var(--orange)' : $focused ? 'var(--accent)' : 'var(--line)'};
   border-radius: 999px;
   color: var(--muted);
   background: var(--card);
   transition: border-color 150ms cubic-bezier(.4, 0, .2, 1);
 
-  > svg { flex: none; width: 24px; height: 24px; }
-  input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 18px; letter-spacing: -.01em; }
+  > svg { flex: none; width: 26px; height: 26px; }
+  input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 20px; letter-spacing: -.01em; }
   input::placeholder { color: var(--muted); opacity: 1; }
 `
 
 const SubmitButton = styled.button<{ $ready: boolean }>`
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 54px;
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,10 +360,10 @@ const ExampleGrid = styled.div<{ $delay: number }>`
   ${({ $delay }) => enter($delay)}
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 20px;
+  gap: 14px;
+  margin-top: 22px;
 
-  button { height: 58px; display: flex; align-items: center; padding: 0 20px; border: 1px solid var(--line); border-radius: 10px; color: var(--sub); background: var(--card); cursor: pointer; font-size: 16px; letter-spacing: -.01em; text-align: left; transition: all 150ms cubic-bezier(.4, 0, .2, 1); }
+  button { height: 68px; display: flex; align-items: center; padding: 0 24px; border: 1px solid var(--line); border-radius: 10px; color: var(--sub); background: var(--card); cursor: pointer; font-size: 18px; letter-spacing: -.01em; text-align: left; transition: all 150ms cubic-bezier(.4, 0, .2, 1); }
   button:hover { border-color: #3a3733; color: var(--ink); background: var(--quote); }
   @media (max-width: 640px) { grid-template-columns: 1fr; }
 `
@@ -330,13 +371,13 @@ const ExampleGrid = styled.div<{ $delay: number }>`
 const ReaskView = styled.section`
   ${enter()}
   width: 100%;
-  max-width: 720px;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   padding: 96px 24px;
 
-  > h1 { margin: 32px 0 0; color: var(--ink); font-size: 28px; font-weight: 500; line-height: 1.35; letter-spacing: -.02em; white-space: pre-line; }
-  > p { margin: 20px 0 0; color: var(--sub); font-size: 15px; line-height: 1.7; letter-spacing: -.01em; white-space: pre-line; }
+  > h1 { margin: 32px 0 0; color: var(--ink); font-size: 32px; font-weight: 500; line-height: 1.35; letter-spacing: -.02em; white-space: pre-line; }
+  > p { margin: 20px 0 0; color: var(--sub); font-size: 17px; line-height: 1.7; letter-spacing: -.01em; white-space: pre-line; }
   @media (max-width: 640px) { padding: 64px 18px 48px; }
 `
 
@@ -349,7 +390,7 @@ const ReaskQuery = styled.button`
   color: var(--sub);
   background: transparent;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 500;
   letter-spacing: -.01em;
   text-align: left;
@@ -372,14 +413,14 @@ const ReaskGrid = styled.div`
 const optionColors = ['var(--violet)', 'var(--orange)', 'var(--green)', 'var(--pink)']
 
 const ReaskOption = styled.button<{ $tone: number }>`
-  height: 96px;
+  height: 108px;
   padding: 0 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--ink);
   background: var(--card);
   cursor: pointer;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   letter-spacing: -.01em;
   transition: all 150ms cubic-bezier(.4, 0, .2, 1);
@@ -389,17 +430,17 @@ const ReaskOption = styled.button<{ $tone: number }>`
 const ReaskDirectLabel = styled.span`
   margin-top: 32px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 `
 
 const ReaskInput = styled.form<{ $focused: boolean; $invalid: boolean }>`
-  height: 52px;
+  height: 60px;
   margin-top: 12px;
-  padding: 0 20px;
+  padding: 0 22px;
   border: 1px solid ${({ $focused, $invalid }) => $invalid ? 'var(--orange)' : $focused ? 'var(--accent)' : 'var(--line)'};
   border-radius: 999px;
   background: var(--card);
-  input { width: 100%; height: 100%; padding: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 15px; }
+  input { width: 100%; height: 100%; padding: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 17px; }
 `
 
 const ErrorCard = styled.div`
@@ -416,8 +457,8 @@ const ErrorCard = styled.div`
   animation: ${errorIn} 180ms cubic-bezier(.4, 0, .2, 1) both;
 
   > div { min-width: 0; }
-  > div > strong { display: block; color: var(--orange); font-size: 15px; font-weight: 600; line-height: 1.4; }
-  > div > span { display: block; margin-top: 4px; color: #d8d2ca; font-size: 14px; line-height: 1.55; word-break: keep-all; }
+  > div > strong { display: block; color: var(--orange); font-size: 16px; font-weight: 600; line-height: 1.4; }
+  > div > span { display: block; margin-top: 4px; color: #d8d2ca; font-size: 15px; line-height: 1.55; word-break: keep-all; }
 
   @media (max-width: 640px) { padding: 14px 15px; }
 `
@@ -436,21 +477,21 @@ const ErrorIcon = styled.span`
 
 const ShowAllButton = styled.button`
   width: 100%;
-  height: 48px;
+  height: 54px;
   margin-top: 32px;
   border: 0;
   border-top: 1px solid var(--line);
   color: var(--muted);
   background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   &:hover { color: var(--sub); }
 `
 
 const SearchLoading = styled.div`
   position: fixed;
   z-index: 20;
-  inset: 56px 0 0;
+  inset: 64px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;

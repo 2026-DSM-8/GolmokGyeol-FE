@@ -31,7 +31,6 @@ export const getUnsupportedPlaceCategory = (query: string) => {
 export const getSearchQueryError = (query: string) => {
   const normalizedQuery = query.trim()
   if (!normalizedQuery) return null
-  if (normalizedQuery.includes('음식점')) return null
 
   if (inappropriateQueryPattern.test(normalizedQuery)) {
     return '음식점과 관련된 검색어를 입력해주세요. 예: 혼자 조용히 밥 먹을 곳'

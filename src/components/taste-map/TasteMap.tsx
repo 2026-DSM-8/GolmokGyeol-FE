@@ -11,6 +11,7 @@ type TasteMapProps = {
   recommendations: Restaurant[]
   axes: Axes
   quadrants: [string, string, string, string]
+  onMapBackgroundClick: () => void
   loading?: boolean
 }
 
@@ -46,6 +47,7 @@ export function TasteMap({
   recommendations,
   axes,
   quadrants,
+  onMapBackgroundClick,
   loading = false,
 }: TasteMapProps) {
   const shellRef = useRef<HTMLDivElement>(null)
@@ -55,7 +57,13 @@ export function TasteMap({
   const [panOffset, setPanOffset] = useState<PanOffset>({ x: 0, y: 0 })
   const [panning, setPanning] = useState(false)
   const [draggingUser, setDraggingUser] = useState(false)
-  const panStartRef = useRef<{ pointerId: number; clientX: number; clientY: number; offset: PanOffset } | null>(null)
+  const panStartRef = useRef<{
+    pointerId: number
+    clientX: number
+    clientY: number
+    offset: PanOffset
+    moved: boolean
+  } | null>(null)
   const userDragPointerRef = useRef<number | null>(null)
   const [mapPixelWidth, setMapPixelWidth] = useState(1000)
   const recommendationIds = new Set(recommendations.map((restaurant) => restaurant.id))
@@ -104,15 +112,17 @@ export function TasteMap({
     setPanOffset((current) => clampPan(current, nextZoom, mapPixelWidth))
   }
   const startPan = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (mapZoom <= MIN_MAP_ZOOM) return
-    event.preventDefault()
-    setPanning(true)
+    if (!event.isPrimary || event.button !== 0) return
     panStartRef.current = {
       pointerId: event.pointerId,
       clientX: event.clientX,
       clientY: event.clientY,
       offset: panOffset,
+      moved: false,
     }
+    if (mapZoom <= MIN_MAP_ZOOM) return
+    event.preventDefault()
+    setPanning(true)
     shellRef.current?.setPointerCapture(event.pointerId)
   }
   const startUserDrag = (event: ReactPointerEvent<SVGGElement>) => {
@@ -137,9 +147,13 @@ export function TasteMap({
 
     const start = panStartRef.current
     if (!start || start.pointerId !== event.pointerId) return
+    const deltaX = event.clientX - start.clientX
+    const deltaY = event.clientY - start.clientY
+    if (Math.hypot(deltaX, deltaY) > 4) start.moved = true
+    if (mapZoom <= MIN_MAP_ZOOM) return
     const nextPan = {
-      x: start.offset.x + event.clientX - start.clientX,
-      y: start.offset.y + event.clientY - start.clientY,
+      x: start.offset.x + deltaX,
+      y: start.offset.y + deltaY,
     }
     setPanOffset(clampPan(nextPan, mapZoom, mapPixelWidth))
   }
@@ -160,6 +174,7 @@ export function TasteMap({
     if (shellRef.current?.hasPointerCapture(event.pointerId)) {
       shellRef.current.releasePointerCapture(event.pointerId)
     }
+    if (!start.moved && event.type === 'pointerup') onMapBackgroundClick()
   }
   const finishCoach = () => setCoachStep(0)
   const advanceCoach = () => {
