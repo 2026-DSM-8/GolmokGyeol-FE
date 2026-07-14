@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { api } from '../api/golmok'
-import { LocationMap, ReviewEvidence, TastePositionMap } from '../components/restaurant-detail'
+import { LocationMap, ReviewEvidence, SearchAgainBar, TastePositionMap } from '../components/restaurant-detail'
 import { RecommendationCard } from '../components/taste-map'
 import { useTasteStore } from '../store/useTasteStore'
 import type { Restaurant, TastePoint } from '../types/restaurant'
+import { trackEvent } from '../utils/analytics'
 import { naverMapSearchUrl } from '../utils/restaurantDisplay'
 import { getRelevantRestaurantKeywords } from '../utils/searchIntent'
 import { getClosingPromotionalComment, getPromotionalComment, getRecommendations } from '../utils/tasteMap'
@@ -19,6 +20,7 @@ export function RestaurantDetailPage() {
   const { restaurantId } = useParams()
   const id = Number(restaurantId)
   const query = useTasteStore((state) => state.query)
+  const searchScope = useTasteStore((state) => state.searchScope)
   const mapResult = useTasteStore((state) => state.mapResult)
   const setTaste = useTasteStore((state) => state.setTaste)
   const setRecommendationIds = useTasteStore((state) => state.setRecommendationIds)
@@ -28,6 +30,7 @@ export function RestaurantDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [similarView, setSimilarView] = useState<SimilarView | null>(null)
   const [similarLoading, setSimilarLoading] = useState(false)
+  const openedRestaurantRef = useRef<string | null>(null)
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -55,6 +58,18 @@ export function RestaurantDetailPage() {
 
     return () => { active = false }
   }, [cachedRestaurant, id])
+
+  useEffect(() => {
+    if (!restaurant || !mapResult) return
+    const eventKey = `${mapResult.sessionId}:${restaurant.id}`
+    if (openedRestaurantRef.current === eventKey) return
+    openedRestaurantRef.current = eventKey
+    trackEvent({
+      event: 'restaurant_open',
+      sessionId: mapResult.sessionId,
+      restaurantId: restaurant.id,
+    })
+  }, [mapResult, restaurant])
 
   if (failed) return <Navigate to={mapResult ? '/taste-map' : '/'} replace />
   if (!restaurant) return <Page><Container>식당 정보를 불러오고 있어요.</Container></Page>
@@ -98,10 +113,24 @@ export function RestaurantDetailPage() {
   const promotionalComment = getPromotionalComment(restaurant)
   const closingPromotionalComment = getClosingPromotionalComment(restaurant)
   const displayKeywords = getRelevantRestaurantKeywords(restaurant, query, 6)
+  const searchAgain = (nextQuery: string) => {
+    navigate('/search', { state: { autoSearchQuery: nextQuery } })
+  }
+  const directionsClick = () => {
+    if (!mapResult) return
+    trackEvent({
+      event: 'directions_click',
+      sessionId: mapResult.sessionId,
+      restaurantId: restaurant.id,
+    })
+  }
 
   return (
     <Page>
       <Container>
+        {searchScope.neighborhood && (
+          <SearchAgainBar initialQuery={query} neighborhood={searchScope.neighborhood} onSearch={searchAgain} />
+        )}
         <BackButton onClick={() => navigate(mapResult ? '/taste-map' : '/')}><span>←</span> 지도로 돌아가기</BackButton>
         <Summary>
           <h1>{restaurant.name}</h1>
@@ -123,7 +152,7 @@ export function RestaurantDetailPage() {
             taste={similarView?.origin}
             highlightedRestaurantIds={similarView?.restaurants.map((item) => item.id)}
           />
-          <LocationMap restaurant={restaurant} />
+          <LocationMap restaurant={restaurant} onDirectionsClick={directionsClick} />
         </MapGrid>
         {similarView && (
           <SimilarSection aria-label={`${restaurant.name}과 비슷한 식당`}>
@@ -134,7 +163,8 @@ export function RestaurantDetailPage() {
                 <RecommendationCard
                   key={item.id}
                   restaurant={item}
-                  order={index + 1}
+                  rank={index + 1}
+                  sessionId={mapResult?.sessionId}
                   onClick={() => navigate(`/restaurants/${item.id}`)}
                 />
               ))}
@@ -149,7 +179,7 @@ export function RestaurantDetailPage() {
           <button onClick={() => { void findSimilar() }} disabled={similarLoading}>
             {similarLoading ? '비슷한 집 찾는 중…' : '여기랑 비슷한 집'}
           </button>
-          <a href={naverMapSearchUrl(restaurant)} target="_blank" rel="noreferrer">길찾기</a>
+          <a href={naverMapSearchUrl(restaurant)} target="_blank" rel="noreferrer" onClick={directionsClick}>길찾기</a>
         </Actions>
       </Container>
     </Page>

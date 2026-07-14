@@ -54,9 +54,12 @@ export type Axes = {
 
 export type Banner = {
   count: number
+  hidden: number
   label: string
   axisText: string
 }
+
+export type PopularityTopItem = Restaurant | number
 
 export type MapResponse = {
   type: 'map'
@@ -67,6 +70,7 @@ export type MapResponse = {
   quadrantCounts: [number, number, number, number]
   origin: { x: number; y: number }
   restaurants: Restaurant[]
+  popularityTop: PopularityTopItem[]
 }
 
 export type ReaskResponse = {
@@ -84,3 +88,23 @@ export type SimilarResponse = {
   origin: { x: number; y: number }
   top3: number[]
 }
+
+export type AnalyticsEvent =
+  | {
+      event: 'recommendation_impression'
+      sessionId: string
+      restaurantId: number
+      rank: number
+      confidence: Confidence
+    }
+  | {
+      event: 'restaurant_open' | 'directions_click'
+      sessionId: string
+      restaurantId: number
+    }
+  | {
+      event: 'taste_changed'
+      sessionId: string
+      x: number
+      y: number
+    }

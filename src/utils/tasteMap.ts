@@ -13,7 +13,7 @@ export const getPromotionalComment = (restaurant: Restaurant) => {
   const subject = highlights || '후기에서 드러난 분위기'
 
   if (restaurant.confidence === 'low') {
-    return `${subject} 같은 매력이 돋보이는 곳이에요. 아직 많이 알려지지 않은 골목 맛집을 먼저 발견해보세요.`
+    return `${subject} 같은 특징이 후기에서 보여요. 정보가 적은 만큼 후기 내용을 함께 살펴보세요.`
   }
 
   return `${subject} 같은 매력을 찾는 날 들러보세요. 오늘의 취향에 잘 맞을지도 몰라요.`
@@ -21,7 +21,7 @@ export const getPromotionalComment = (restaurant: Restaurant) => {
 
 export const getClosingPromotionalComment = (restaurant: Restaurant) => {
   if (restaurant.confidence === 'low') {
-    return `아직 많이 알려지지 않은 ${restaurant.name}, 오늘 먼저 발견해보세요.`
+    return `후기 정보는 적지만 취향 지도에서 만난 ${restaurant.name}, 남겨진 후기를 더 살펴보세요.`
   }
 
   const highlights = restaurant.keywords.slice(0, 2).map((keyword) => `‘${keyword}’`).join(', ')
