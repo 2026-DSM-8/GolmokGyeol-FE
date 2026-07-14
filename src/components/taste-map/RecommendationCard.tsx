@@ -1,33 +1,39 @@
 import { keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
 import type { Restaurant } from '../../types/restaurant'
+import { getRelevantRestaurantKeywords } from '../../utils/searchIntent'
 
 type RecommendationCardProps = {
   restaurant: Restaurant
   order: number
   onClick: () => void
+  query?: string
 }
 
 const getPointColor = ([x, y]: Restaurant['position']) => (
-  y > 0 ? (x < 0 ? 'var(--violet)' : 'var(--orange)') : (x < 0 ? 'var(--green)' : 'var(--pink)')
+  y >= 0 ? (x < 0 ? 'var(--violet)' : 'var(--orange)') : (x < 0 ? 'var(--green)' : 'var(--pink)')
 )
 
-export function RecommendationCard({ restaurant, order, onClick }: RecommendationCardProps) {
+export function RecommendationCard({ restaurant, order, onClick, query }: RecommendationCardProps) {
+  const displayKeywords = getRelevantRestaurantKeywords(restaurant, query)
+
   return (
     <Card onClick={onClick} $delay={order * 55}>
       <Order $color={getPointColor(restaurant.position)}>{order}</Order>
       <Content>
         <TitleRow>
           <h3>{restaurant.name}</h3>
-          {restaurant.reviews < 40 && <LowReviewBadge>후기 적음</LowReviewBadge>}
+          {restaurant.confidence === 'low' && <LowReviewBadge>후기 적음</LowReviewBadge>}
         </TitleRow>
         <Meta>
           {restaurant.category} · 후기 {restaurant.reviews}건
         </Meta>
         <Summary>“{restaurant.quote}”</Summary>
-        <Keywords aria-label="대표 특징">
-          {restaurant.keywords.slice(0, 2).map((keyword) => <span key={keyword}>{keyword}</span>)}
-        </Keywords>
+        {displayKeywords.length > 0 && (
+          <Keywords aria-label="검색 조건과 관련된 특징">
+            {displayKeywords.map((keyword) => <span key={keyword}>{keyword}</span>)}
+          </Keywords>
+        )}
       </Content>
       <Chevron width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></Chevron>
     </Card>

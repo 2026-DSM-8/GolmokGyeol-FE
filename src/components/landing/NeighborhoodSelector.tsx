@@ -1,54 +1,56 @@
 import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
-import { useMemo, useState } from 'react'
-import { KOREAN_ADMINISTRATIVE_DISTRICTS } from '../../data/koreanAdministrativeDistricts'
+import { useEffect, useMemo, useState } from 'react'
+import { api } from '../../api/golmok'
+import { useTasteStore } from '../../store/useTasteStore'
 import type { SearchScope } from '../../store/useTasteStore'
+import type { Region } from '../../types/restaurant'
 
 type NeighborhoodSelectorProps = {
   onSelect: (scope: SearchScope) => void
 }
 
-type NeighborhoodOption = SearchScope & {
-  count: number
-}
-
-const countFor = (value: string) => 48 + [...value].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 184
-
-const allNeighborhoods: NeighborhoodOption[] = Object.entries(KOREAN_ADMINISTRATIVE_DISTRICTS).flatMap(([city, districts]) => (
-  Object.entries(districts).flatMap(([district, neighborhoods]) => (
-    neighborhoods.map((neighborhood) => ({ city, district, neighborhood, count: countFor(`${city}${district}${neighborhood}`) }))
-  ))
-))
-
-const popularScopes: SearchScope[] = [
-  { city: '대전광역시', district: '중구', neighborhood: '은행동' },
-  { city: '대전광역시', district: '유성구', neighborhood: '궁동' },
-  { city: '대전광역시', district: '서구', neighborhood: '둔산동' },
-  { city: '대전광역시', district: '유성구', neighborhood: '봉명동' },
-  { city: '대전광역시', district: '유성구', neighborhood: '봉명동' },
-  { city: '대전광역시', district: '중구', neighborhood: '대흥동' },
-]
-
-const popularLabels = ['은행동', '궁동', '둔산동', '유성온천', '봉명동', '대흥동']
-
 export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const regions = useTasteStore((state) => state.regions)
+  const setRegions = useTasteStore((state) => state.setRegions)
+
+  useEffect(() => {
+    let active = true
+
+    api.regions()
+      .then(({ regions: nextRegions }) => {
+        if (!active) return
+        setRegions(nextRegions)
+        setLoadFailed(false)
+      })
+      .catch(() => {
+        if (active) setLoadFailed(true)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => { active = false }
+  }, [setRegions])
 
   const results = useMemo(() => {
     const trimmed = query.trim()
-    if (!trimmed) {
-      return popularScopes.map((scope, index) => ({ ...scope, neighborhood: popularLabels[index], count: countFor(popularLabels[index]) }))
-    }
-    return allNeighborhoods
-      .filter(({ city, district, neighborhood }) => `${city} ${district} ${neighborhood}`.includes(trimmed))
+    if (!trimmed) return regions
+    return regions
+      .filter(({ city, district, neighborhood }) => `${city} ${district ?? ''} ${neighborhood}`.includes(trimmed))
       .slice(0, 6)
-  }, [query])
+  }, [query, regions])
 
-  const pick = (option: NeighborhoodOption) => {
-    const actualNeighborhood = option.neighborhood === '유성온천' ? '봉명동' : option.neighborhood
-    onSelect({ city: option.city, district: option.district, neighborhood: actualNeighborhood })
-  }
+  const pick = (option: Region) => onSelect({
+    city: option.city,
+    district: option.district,
+    neighborhood: option.neighborhood,
+    storeCount: option.storeCount,
+  })
 
   return (
     <Page>
@@ -79,19 +81,32 @@ export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
           {results.length ? (
             <NeighborhoodGrid>
               {results.map((option, index) => (
-                <button key={`${option.city}-${option.district}-${option.neighborhood}-${index}`} onClick={() => pick(option)}>
+                <button
+                  key={`${option.city}-${option.district}-${option.neighborhood}-${index}`}
+                  onClick={() => pick(option)}
+                  disabled={!option.available}
+                >
                   <NeighborhoodName>{option.neighborhood}</NeighborhoodName>
-                  <span>{option.count}곳</span>
+                  <span>{option.storeCount}곳</span>
                   {query.trim() && <small>{option.city} · {option.district}</small>}
                 </button>
               ))}
             </NeighborhoodGrid>
           ) : (
-            <NeighborhoodEmpty>그 이름의 동네는 아직 없어요.</NeighborhoodEmpty>
+            <NeighborhoodEmpty>
+              {loading ? '서비스 동네를 불러오고 있어요.' : loadFailed ? '동네 목록을 불러오지 못했어요.' : '그 이름의 동네는 아직 없어요.'}
+            </NeighborhoodEmpty>
           )}
         </FrequentNeighborhoods>
 
-        <NearbyButton $delay={520} onClick={() => onSelect(popularScopes[0])}>
+        <NearbyButton
+          $delay={520}
+          onClick={() => {
+            const nearbyRegion = regions.find((region) => region.available)
+            if (nearbyRegion) pick(nearbyRegion)
+          }}
+          disabled={!regions.some((region) => region.available)}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
             <circle cx="12" cy="10" r="3" />
