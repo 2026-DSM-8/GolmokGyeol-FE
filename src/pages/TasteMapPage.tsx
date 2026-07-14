@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
-import { api } from '../api/golmok'
 import { MapQueryHeader, RecommendationCard, RestaurantSidebar, TasteMap } from '../components/taste-map'
 import { useTasteStore } from '../store/useTasteStore'
 import type { Restaurant } from '../types/restaurant'
@@ -16,7 +15,6 @@ export function TasteMapPage() {
   const recommendationIds = useTasteStore((state) => state.recommendationIds)
   const setRecommendationIds = useTasteStore((state) => state.setRecommendationIds)
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
-  const [dragError, setDragError] = useState<string | null>(null)
 
   if (!mapResult) return <Navigate to="/search" replace />
 
@@ -33,18 +31,11 @@ export function TasteMapPage() {
   const moveTaste = (point: [number, number]) => {
     setTaste(point)
     setRecommendationIds(null)
-    setDragError(null)
   }
-  const findSimilar = async (restaurant: Restaurant) => {
-    try {
-      const response = await api.similar(restaurant.id)
-      setTaste([response.origin.x, response.origin.y])
-      setRecommendationIds(response.top3)
-      setSelectedRestaurant(null)
-      setDragError(null)
-    } catch {
-      setDragError('비슷한 식당을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
-    }
+  const findSimilar = (restaurant: Restaurant) => {
+    setTaste(restaurant.position)
+    setRecommendationIds(null)
+    setSelectedRestaurant(null)
   }
 
   return (
@@ -55,7 +46,7 @@ export function TasteMapPage() {
         onBack={() => navigate('/search')}
       />
       <ResultSummary>
-        <p>{dragError ?? <>{mapResult.banner.label} <strong>{mapResult.banner.count}곳</strong>을 찾았어요. 이 안에서도 갈려요 → <span>{mapResult.banner.axisText}</span></>}</p>
+        <p>{mapResult.banner.label} <strong>{mapResult.banner.count}곳</strong>을 찾았어요. 이 안에서도 갈려요 → <span>{mapResult.banner.axisText}</span></p>
       </ResultSummary>
       <Layout>
         <MapColumn>
@@ -67,6 +58,7 @@ export function TasteMapPage() {
             axes={mapResult.axes}
             quadrants={mapResult.quadrants}
             onOpenRestaurant={openRestaurant}
+            onMapBackgroundClick={() => setSelectedRestaurant(null)}
           />
         </MapColumn>
         <RecommendationRail aria-label={selectedRestaurant ? `${selectedRestaurant.name} 상세 정보` : '취향과 가까운 추천 식당'}>
@@ -74,7 +66,7 @@ export function TasteMapPage() {
             <RestaurantSidebar
               restaurant={selectedRestaurant}
               onBack={() => setSelectedRestaurant(null)}
-              onFindSimilar={() => { void findSimilar(selectedRestaurant) }}
+              onFindSimilar={() => findSimilar(selectedRestaurant)}
               quadrants={mapResult.quadrants}
             />
           ) : (
