@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LocationMap, TastePositionMap } from '../restaurant-detail'
 import type { Restaurant } from '../../types/restaurant'
 import { formatQuadrantLabel, naverMapSearchUrl, sourceHref, sourceLabel } from '../../utils/restaurantDisplay'
@@ -20,6 +20,7 @@ const quadrantName = ([x, y]: Restaurant['position'], quadrants: [string, string
 )
 
 export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants }: RestaurantSidebarProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [reviewsExpanded, setReviewsExpanded] = useState(false)
   const evidence = [
     restaurant.matchedSnippet,
@@ -33,12 +34,13 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
   const closingPromotionalComment = getClosingPromotionalComment(restaurant)
 
   useEffect(() => {
+    if (scrollAreaRef.current) scrollAreaRef.current.scrollTop = 0
     setReviewsExpanded(false)
   }, [restaurant.id])
 
   return (
     <Sidebar>
-      <ScrollArea>
+      <ScrollArea ref={scrollAreaRef}>
         <BackButton onClick={onBack}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
           추천 5곳으로

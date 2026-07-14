@@ -30,6 +30,10 @@ export function RestaurantDetailPage() {
   const [similarLoading, setSimilarLoading] = useState(false)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [id])
+
+  useEffect(() => {
     if (!Number.isFinite(id)) {
       setFailed(true)
       return
