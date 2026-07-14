@@ -127,7 +127,7 @@ export function TastePositionMap({
   )
 }
 
-export function LocationMap({ restaurant }: { restaurant: Restaurant }) {
+export function LocationMap({ restaurant, onDirectionsClick }: { restaurant: Restaurant; onDirectionsClick?: () => void }) {
   const naverMapUrl = naverMapSearchUrl(restaurant)
   const [coordinates, setCoordinates] = useState<Coordinates | null>()
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM)
@@ -169,6 +169,7 @@ export function LocationMap({ restaurant }: { restaurant: Restaurant }) {
           target="_blank"
           rel="noreferrer"
           aria-label={`${restaurant.name} 위치를 네이버 지도에서 열기`}
+          onClick={onDirectionsClick}
         >
           <span>네이버 지도에서 보기 ↗</span>
         </LocationMapLink>

@@ -12,6 +12,7 @@ type TasteMapProps = {
   axes: Axes
   quadrants: [string, string, string, string]
   onMapBackgroundClick: () => void
+  onCoachActiveChange?: (active: boolean) => void
   loading?: boolean
 }
 
@@ -48,6 +49,7 @@ export function TasteMap({
   axes,
   quadrants,
   onMapBackgroundClick,
+  onCoachActiveChange,
   loading = false,
 }: TasteMapProps) {
   const shellRef = useRef<HTMLDivElement>(null)
@@ -100,6 +102,10 @@ export function TasteMap({
     const timer = window.setTimeout(() => setCoachStep(1), 700)
     return () => window.clearTimeout(timer)
   }, [loading])
+
+  useEffect(() => {
+    onCoachActiveChange?.(coachStep > 0 && !loading)
+  }, [coachStep, loading, onCoachActiveChange])
 
   const horizontal = taste[0] < -.15 ? axes.x.neg : taste[0] > .15 ? axes.x.pos : `${axes.x.neg}·${axes.x.pos}`
   const vertical = taste[1] > .15 ? axes.y.pos : taste[1] < -.15 ? axes.y.neg : `${axes.y.neg}·${axes.y.pos}`

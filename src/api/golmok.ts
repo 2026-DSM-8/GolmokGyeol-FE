@@ -1,4 +1,5 @@
 import type {
+  AnalyticsEvent,
   DragResponse,
   Region,
   Restaurant,
@@ -53,6 +54,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(res.status, await res.text());
   }
 
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -99,4 +101,10 @@ export const api = {
 
   similar: (id: number) =>
     req<SimilarResponse>(`/api/restaurants/${id}/similar`),
+
+  event: (event: AnalyticsEvent) =>
+    req<void>("/api/events", {
+      method: "POST",
+      body: JSON.stringify(event),
+    }),
 };

@@ -1,6 +1,6 @@
 import { css, keyframes } from '@emotion/react'
 import styled from '@emotion/styled'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { SearchScope } from '../../store/useTasteStore'
 import type { Reask, SearchResponse } from '../../types/restaurant'
@@ -10,6 +10,8 @@ type SearchExperienceProps = {
   scope: SearchScope
   onChangeNeighborhood: () => void
   onSearch: (query: string, force?: boolean) => Promise<SearchResponse>
+  autoSearchQuery?: string
+  onAutoSearchStart?: () => void
 }
 
 type SearchError = {
@@ -19,8 +21,10 @@ type SearchError = {
 
 const examples = ['혼자 조용히', '친구랑 수다', '후딱 한 끼', '오래 앉아있기']
 
-export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: SearchExperienceProps) {
-  const [query, setQuery] = useState('')
+export function SearchExperience({ scope, onChangeNeighborhood, onSearch, autoSearchQuery, onAutoSearchStart }: SearchExperienceProps) {
+  const initialAutoSearchQueryRef = useRef(autoSearchQuery?.trim() ?? '')
+  const autoSearchStartedRef = useRef(false)
+  const [query, setQuery] = useState(initialAutoSearchQueryRef.current)
   const [focused, setFocused] = useState(false)
   const [reask, setReask] = useState<Reask | null>(null)
   const [loading, setLoading] = useState(false)
@@ -41,7 +45,7 @@ export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: Sear
     return () => window.clearInterval(timer)
   }, [loading])
 
-  const runSearch = async (raw: string, force = false) => {
+  const runSearch = useCallback(async (raw: string, force = false) => {
     const nextQuery = raw.trim()
     if (!nextQuery || loading) return
 
@@ -68,7 +72,15 @@ export function SearchExperience({ scope, onChangeNeighborhood, onSearch }: Sear
     } finally {
       setLoading(false)
     }
-  }
+  }, [loading, onSearch])
+
+  useEffect(() => {
+    const initialQuery = initialAutoSearchQueryRef.current
+    if (!initialQuery || autoSearchStartedRef.current) return
+    autoSearchStartedRef.current = true
+    onAutoSearchStart?.()
+    void runSearch(initialQuery)
+  }, [onAutoSearchStart, runSearch])
 
   const submit = (event: FormEvent) => {
     event.preventDefault()

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LocationMap, TastePositionMap } from '../restaurant-detail'
 import type { Restaurant } from '../../types/restaurant'
 import { formatQuadrantLabel, naverMapSearchUrl, sourceHref, sourceLabel } from '../../utils/restaurantDisplay'
@@ -8,6 +8,7 @@ type RestaurantSidebarProps = {
   restaurant: Restaurant
   onBack: () => void
   onFindSimilar: () => void
+  onDirectionsClick: () => void
   quadrants: [string, string, string, string]
 }
 
@@ -19,7 +20,8 @@ const quadrantName = ([x, y]: Restaurant['position'], quadrants: [string, string
   formatQuadrantLabel(quadrants[y >= 0 ? (x < 0 ? 2 : 3) : (x < 0 ? 0 : 1)])
 )
 
-export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants }: RestaurantSidebarProps) {
+export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, onDirectionsClick, quadrants }: RestaurantSidebarProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [reviewsExpanded, setReviewsExpanded] = useState(false)
   const evidence = [
     restaurant.matchedSnippet,
@@ -33,12 +35,13 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
   const closingPromotionalComment = getClosingPromotionalComment(restaurant)
 
   useEffect(() => {
+    if (scrollAreaRef.current) scrollAreaRef.current.scrollTop = 0
     setReviewsExpanded(false)
   }, [restaurant.id])
 
   return (
     <Sidebar>
-      <ScrollArea>
+      <ScrollArea ref={scrollAreaRef}>
         <BackButton onClick={onBack}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
           추천 5곳으로
@@ -53,12 +56,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
           <PromoComment>{promotionalComment}</PromoComment>
         </Heading>
 
-        {restaurant.confidence === 'low' && (
-          <Caution>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-            후기가 적어요. 취향 자리가 부정확할 수 있어요.
-          </Caution>
-        )}
+        {restaurant.confidence === 'low' && <LowReviewNotice>후기 정보 적음</LowReviewNotice>}
 
         <PositionSection>
           <h3>이 골목에선 여기쯤이에요</h3>
@@ -68,7 +66,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
               <QuadrantCaption $color={pointColor}>‘{quadrantName(restaurant.position, quadrants)}’ 자리</QuadrantCaption>
             </MapPanel>
             <LocationPanel>
-              <LocationMap restaurant={restaurant} />
+              <LocationMap restaurant={restaurant} onDirectionsClick={onDirectionsClick} />
               <Address>{restaurant.address}</Address>
               {restaurant.locationDesc && <LocationNote>{restaurant.locationDesc}</LocationNote>}
             </LocationPanel>
@@ -120,8 +118,8 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
       </ScrollArea>
 
       <Actions>
-        <button onClick={onFindSimilar}>여기랑 비슷한 집</button>
-        <a href={naverMapSearchUrl(restaurant)} target="_blank" rel="noreferrer">길찾기</a>
+        <button onClick={onFindSimilar}>비슷한 가게 더 보기</button>
+        <a href={naverMapSearchUrl(restaurant)} target="_blank" rel="noreferrer" onClick={onDirectionsClick}>길찾기</a>
       </Actions>
     </Sidebar>
   )
@@ -129,7 +127,7 @@ export function RestaurantSidebar({ restaurant, onBack, onFindSimilar, quadrants
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}`
 const Sidebar = styled.div`display:flex;flex-direction:column;height:100%;min-height:0;padding:0;animation:${fadeUp} 420ms cubic-bezier(.4,0,.2,1) both;`
-const ScrollArea = styled.div`flex:1;min-height:0;overflow-y:auto;padding:32px 28px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;@media(max-width:640px){padding:24px 18px 32px;}`
+const ScrollArea = styled.div`flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:none;padding:32px 28px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;@media(max-width:640px){padding:24px 18px 32px;}`
 const BackButton = styled.button`display:flex;align-items:center;gap:7px;margin:0 0 28px;padding:0;border:0;color:var(--muted);background:transparent;cursor:pointer;font-size:15px;&:hover{color:var(--sub);}`
 const Heading = styled.header`
   > div{display:flex;align-items:center;gap:8px}h2{margin:0;font-size:26px;font-weight:500;line-height:1.35;letter-spacing:-.01em}
@@ -137,7 +135,7 @@ const Heading = styled.header`
 `
 const ColorDot = styled.span<{ $color: string }>`flex:none;width:8px;height:8px;border-radius:50%;background:${({$color})=>$color};`
 const PromoComment = styled.p`max-width:620px!important;margin-top:16px!important;padding-left:14px;border-left:2px solid var(--accent);color:var(--sub)!important;font-size:14px!important;line-height:1.7;letter-spacing:-.01em;`
-const Caution = styled.div`display:flex;gap:10px;margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;color:var(--sub);background:var(--quote);font-size:14px;line-height:1.55;`
+const LowReviewNotice = styled.span`display:inline-flex;margin-top:16px;padding:5px 9px;border:1px solid rgba(255,159,67,.35);border-radius:999px;color:var(--accent);background:var(--halo);font-size:11px;font-weight:600;line-height:1;`
 const Section = styled.section`margin-top:36px;padding-top:36px;border-top:1px solid var(--line);h3{margin:0 0 18px;color:var(--sub);font-size:15px;font-weight:400;letter-spacing:-.01em}`
 const PositionSection = styled(Section)`
   h3{margin-bottom:14px}

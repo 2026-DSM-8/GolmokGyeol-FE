@@ -1,5 +1,5 @@
 import styled from '@emotion/styled'
-import { Navigate, useNavigate } from 'react-router'
+import { Navigate, useLocation, useNavigate } from 'react-router'
 import { api } from '../api/golmok'
 import { SearchExperience, TasteBackdrop } from '../components/landing'
 import { useTasteStore } from '../store/useTasteStore'
@@ -7,9 +7,13 @@ import { getCuisineFallbackQuery } from '../utils/searchIntent'
 
 export function SearchPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const searchScope = useTasteStore((state) => state.searchScope)
   const setQuery = useTasteStore((state) => state.setQuery)
   const setMapResult = useTasteStore((state) => state.setMapResult)
+  const autoSearchQuery = typeof location.state?.autoSearchQuery === 'string'
+    ? location.state.autoSearchQuery
+    : undefined
 
   if (!searchScope.neighborhood) {
     return <Navigate to="/" replace />
@@ -45,6 +49,8 @@ export function SearchPage() {
         scope={searchScope}
         onChangeNeighborhood={() => navigate('/')}
         onSearch={search}
+        autoSearchQuery={autoSearchQuery}
+        onAutoSearchStart={() => navigate('/search', { replace: true, state: null })}
       />
     </Flow>
   )
