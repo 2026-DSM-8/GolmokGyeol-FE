@@ -10,30 +10,11 @@ type NeighborhoodSelectorProps = {
   onSelect: (scope: SearchScope) => void;
 };
 
-type ReverseGeocodeResult = {
-  display_name?: string;
-  address?: Record<string, string>;
-};
-
-const getCurrentPosition = () =>
-  new Promise<GeolocationPosition>((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: false,
-      timeout: 10_000,
-      maximumAge: 5 * 60 * 1000,
-    });
-  });
-
-const includesPlaceName = (address: string, placeName: string) =>
-  address.replace(/\s+/g, "").includes(placeName.replace(/\s+/g, ""));
-
 export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
-  const [locating, setLocating] = useState(false);
-  const [locationError, setLocationError] = useState("");
   const regions = useTasteStore((state) => state.regions);
   const setRegions = useTasteStore((state) => state.setRegions);
 
@@ -68,6 +49,13 @@ export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
       )
       .slice(0, 6);
   }, [query, regions]);
+  const nearbyRegion = regions.find(
+    (region) =>
+      region.available &&
+      region.district === "유성구" &&
+      region.neighborhood === "장동",
+  );
+
   const pick = (option: Region) =>
     onSelect({
       city: option.city,
@@ -75,59 +63,6 @@ export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
       neighborhood: option.neighborhood,
       storeCount: option.storeCount,
     });
-
-  const locateCurrentRegion = async () => {
-    if (!("geolocation" in navigator)) {
-      setLocationError("이 브라우저에서는 현재 위치를 확인할 수 없어요.");
-      return;
-    }
-
-    setLocating(true);
-    setLocationError("");
-
-    try {
-      const { coords } = await getCurrentPosition();
-      const params = new URLSearchParams({
-        format: "jsonv2",
-        lat: String(coords.latitude),
-        lon: String(coords.longitude),
-        zoom: "18",
-        addressdetails: "1",
-        "accept-language": "ko",
-      });
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?${params}`,
-        { headers: { Accept: "application/json" } },
-      );
-      if (!response.ok) throw new Error("Reverse geocoding failed");
-
-      const result = (await response.json()) as ReverseGeocodeResult;
-      const address = [
-        result.display_name,
-        ...Object.values(result.address ?? {}),
-      ]
-        .filter(Boolean)
-        .join(" ");
-      const currentRegion = regions.find(
-        (region) =>
-          region.available &&
-          includesPlaceName(address, region.city) &&
-          (!region.district || includesPlaceName(address, region.district)) &&
-          includesPlaceName(address, region.neighborhood),
-      );
-
-      if (!currentRegion) {
-        setLocationError("현재 위치는 아직 서비스하는 동네가 아니에요.");
-        return;
-      }
-
-      pick(currentRegion);
-    } catch {
-      setLocationError("위치 권한을 허용한 뒤 다시 시도해주세요.");
-    } finally {
-      setLocating(false);
-    }
-  };
 
   return (
     <Page>
@@ -200,8 +135,10 @@ export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
 
         <NearbyButton
           $delay={520}
-          onClick={() => void locateCurrentRegion()}
-          disabled={loading || locating || !regions.some((region) => region.available)}
+          onClick={() => {
+            if (nearbyRegion) pick(nearbyRegion);
+          }}
+          disabled={!nearbyRegion}
         >
           <svg
             width="16"
@@ -217,9 +154,8 @@ export function NeighborhoodSelector({ onSelect }: NeighborhoodSelectorProps) {
             <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          {locating ? "위치 확인 중..." : "내 위치 둘러보기"}
+          {nearbyRegion?.neighborhood ?? "장동"} 둘러보기
         </NearbyButton>
-        {locationError && <LocationStatus role="status">{locationError}</LocationStatus>}
       </Content>
     </Page>
   );
@@ -455,11 +391,4 @@ const NearbyButton = styled.button<{ $delay: number }>`
   &:active {
     transform: scale(0.98);
   }
-`;
-
-const LocationStatus = styled.p`
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  text-align: center;
 `;

@@ -25,6 +25,11 @@ const Flow = styled.div`
   overflow: hidden;
   background: var(--background);
 
+  @media (min-width: 641px) {
+    height: 100dvh;
+    min-height: 0;
+  }
+
   > :not(:first-of-type) {
     position: relative;
     z-index: 1;

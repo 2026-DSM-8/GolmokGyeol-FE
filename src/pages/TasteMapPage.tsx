@@ -82,6 +82,7 @@ export function TasteMapPage() {
     setTaste(point)
     setRecommendationIds(null)
     setSimilarOrigin(null)
+    setSelectedRestaurant(null)
   }
   const findSimilar = (restaurant: Restaurant) => {
     setTaste(restaurant.position)

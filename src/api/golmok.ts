@@ -9,6 +9,17 @@ import type {
 
 const BASE = import.meta.env.VITE_API_BASE;
 const SEARCH_CACHE_STORAGE_KEY = "golmokgyeol-search-cache-v1";
+const SEARCH_CACHE_EVICTION_KEY = "golmokgyeol-search-cache-eviction-develop-cafe-v2";
+const SEARCH_QUERY_TO_EVICT = "혼자 개발하기 좋은 카페";
+
+const isCachedQuery = (key: string, query: string) => {
+  try {
+    const parsed = JSON.parse(key) as unknown;
+    return Array.isArray(parsed) && parsed[1] === query;
+  } catch {
+    return false;
+  }
+};
 
 const loadSearchCache = () => {
   if (typeof window === "undefined") return new Map<string, SearchResponse>();
@@ -20,12 +31,24 @@ const loadSearchCache = () => {
     const entries = JSON.parse(stored) as unknown;
     if (!Array.isArray(entries)) return new Map<string, SearchResponse>();
 
-    return new Map(
-      entries.filter(
-        (entry): entry is [string, SearchResponse] =>
-          Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string",
-      ),
+    const validEntries = entries.filter(
+      (entry): entry is [string, SearchResponse] =>
+        Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string",
     );
+
+    if (window.localStorage.getItem(SEARCH_CACHE_EVICTION_KEY) !== "done") {
+      const remainingEntries = validEntries.filter(
+        ([key]) => !isCachedQuery(key, SEARCH_QUERY_TO_EVICT),
+      );
+      window.localStorage.setItem(
+        SEARCH_CACHE_STORAGE_KEY,
+        JSON.stringify(remainingEntries),
+      );
+      window.localStorage.setItem(SEARCH_CACHE_EVICTION_KEY, "done");
+      return new Map(remainingEntries);
+    }
+
+    return new Map(validEntries);
   } catch {
     return new Map<string, SearchResponse>();
   }
