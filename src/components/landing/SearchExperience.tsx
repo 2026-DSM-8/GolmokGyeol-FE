@@ -19,7 +19,12 @@ type SearchError = {
   message: string
 }
 
-const examples = ['혼자 조용히', '친구랑 수다', '후딱 한 끼', '오래 앉아있기']
+const examples = [
+  '혼자 조용히 쉴 수 있는 카페',
+  '친구랑 수다 떨기 좋은 술집',
+  '후딱 한 끼 먹기 좋은 분식집',
+  '오래 앉아 있기 좋은 카페',
+]
 
 export function SearchExperience({ scope, onChangeNeighborhood, onSearch, autoSearchQuery, onAutoSearchStart }: SearchExperienceProps) {
   const initialAutoSearchQueryRef = useRef(autoSearchQuery?.trim() ?? '')
@@ -145,7 +150,7 @@ export function SearchExperience({ scope, onChangeNeighborhood, onSearch, autoSe
             <QueryForm $delay={160} onSubmit={submit}>
               <SearchField $focused={focused} $invalid={Boolean(error)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-                <input value={query} onChange={(event) => { setQuery(event.target.value); setError(null) }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="혼자 조용히 밥 먹고 싶어" disabled={loading} aria-invalid={Boolean(error)} />
+                <input value={query} onChange={(event) => { setQuery(event.target.value); setError(null) }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="혼자 조용히 쉴 수 있는 카페" disabled={loading} aria-invalid={Boolean(error)} />
                 <SubmitButton type="submit" $ready={Boolean(query.trim()) && !loading} aria-label="찾기" disabled={loading}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                 </SubmitButton>

@@ -8,31 +8,49 @@ import type {
 } from "../types/restaurant";
 
 const BASE = import.meta.env.VITE_API_BASE;
-const SEARCH_CACHE_TTL = 5 * 60 * 1000;
-const SEARCH_CACHE_LIMIT = 20;
+const SEARCH_CACHE_STORAGE_KEY = "golmokgyeol-search-cache-v1";
 
-type SearchCacheEntry = {
-  response: SearchResponse;
-  expiresAt: number;
+const loadSearchCache = () => {
+  if (typeof window === "undefined") return new Map<string, SearchResponse>();
+
+  try {
+    const stored = window.localStorage.getItem(SEARCH_CACHE_STORAGE_KEY);
+    if (!stored) return new Map<string, SearchResponse>();
+
+    const entries = JSON.parse(stored) as unknown;
+    if (!Array.isArray(entries)) return new Map<string, SearchResponse>();
+
+    return new Map(
+      entries.filter(
+        (entry): entry is [string, SearchResponse] =>
+          Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string",
+      ),
+    );
+  } catch {
+    return new Map<string, SearchResponse>();
+  }
 };
 
-const searchCache = new Map<string, SearchCacheEntry>();
+const searchCache = loadSearchCache();
 const pendingSearches = new Map<string, Promise<SearchResponse>>();
+
+const cacheSearch = (key: string, response: SearchResponse) => {
+  searchCache.set(key, response);
+
+  try {
+    window.localStorage.setItem(
+      SEARCH_CACHE_STORAGE_KEY,
+      JSON.stringify([...searchCache.entries()]),
+    );
+  } catch {
+    // Keep the in-memory cache available when persistent storage is unavailable.
+  }
+};
 
 const normalizeQuery = (query: string) => query.trim().replace(/\s+/g, " ");
 
 const searchKey = (neighborhood: string, query: string, force: boolean) =>
   JSON.stringify([neighborhood.trim(), normalizeQuery(query), force]);
-
-const cacheSearch = (key: string, response: SearchResponse) => {
-  searchCache.delete(key);
-  searchCache.set(key, { response, expiresAt: Date.now() + SEARCH_CACHE_TTL });
-
-  if (searchCache.size > SEARCH_CACHE_LIMIT) {
-    const oldestKey = searchCache.keys().next().value;
-    if (oldestKey) searchCache.delete(oldestKey);
-  }
-};
 
 export class ApiError extends Error {
   status: number;
@@ -66,9 +84,7 @@ export const api = {
     const key = searchKey(neighborhood, normalizedQuery, force);
     const cached = searchCache.get(key);
 
-    if (cached && cached.expiresAt > Date.now())
-      return Promise.resolve(cached.response);
-    if (cached) searchCache.delete(key);
+    if (cached) return Promise.resolve(cached);
 
     const pending = pendingSearches.get(key);
     if (pending) return pending;
